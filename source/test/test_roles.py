@@ -214,6 +214,18 @@ with sync_playwright() as pw:
     ok("47 000" in vt or "47 000" in vt.replace(" ", " "), "versement : la valeur des alvéoles à 47 000 est expliquée")
     capture(B, "14_dg_versements")
 
+    print("6b. Contrôle de cohérence")
+    B.click('button.ctrl-carte'); B.wait_for_timeout(400)
+    txt = B.locator("#panneau-menu").inner_text()
+    ok("Taux de ponte" in txt and "Aliment par poule" in txt and "7 derniers jours" in txt, "l'onglet Contrôle s'ouvre avec ponte, aliment et 7 jours")
+    B.click('[data-act="bordJour"][data-v="-1"]'); B.wait_for_timeout(400)
+    txt = B.locator("#panneau-menu").inner_text()
+    ok("plus que le maximum de 7 sacs" in txt, "8,5 sacs donnés hier : signalé au-dessus du maximum de 7")
+    ok("plus que ce qui a été acheté" in txt, "aliment donné sans achat saisi : signalé")
+    capture(B, "14b_controle")
+    B.locator("#panneau-menu").screenshot(path=f"{SHOTS}/14c_controle_panneau.png")
+    ok(A.locator("button.ctrl-carte").count() == 0, "le commercial ne voit pas le contrôle")
+
     print("7. Le technicien Malien")
     C = page_neuve(telephone(), "C")
     entrer(C, "Malien", "147092"); C.wait_for_timeout(1000)

@@ -105,8 +105,9 @@ js=js[:a]+'''  if(type==="user"){if(!estDG())return toast("Seul le DG peut ajout
 '''+js[z:]
 rep("""  if(type==="ferme"){var R=D.reglages;""","""  if(type==="ferme"){if(!estDG())return;var R=D.reglages;""")
 rep("  h+=carteAction(actionTechnicien(d));\n","  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d);\n")
+import sys as _s;_s.path.insert(0,'src');import brancher_controle as _bc;_bc.appliquer(rep)
 # fin
-extra=open('src/acces.js',encoding='utf-8').read()+'\n'+open('src/telephone.js',encoding='utf-8').read()
+extra=open('src/acces.js',encoding='utf-8').read()+'\n'+open('src/telephone.js',encoding='utf-8').read()+'\n'+open('src/controle.js',encoding='utf-8').read()
 rep('construireD();rendre();demarrerPartage();',extra+'\nconstruireD();rendre();demarrerPartage();')
 assert 'remplacer(' not in js.replace('function remplacer(',''), 'remplacer encore utilisé'
 open('dist/app.js','w',encoding='utf-8').write('"use strict";\n'+js.replace('"use strict";','',1))
@@ -121,7 +122,7 @@ css_add='''
 .bandeau.b-refus{background:var(--alerte-doux);color:var(--encre)}
 .btn svg{width:20px;height:20px;vertical-align:-4px;margin-right:6px}
 '''
-head=head.replace('</style>',css_add+'</style>')
+head=head.replace('</style>',css_add+_bc.CSS+'</style>')
 head=head.replace('<meta name="theme-color" content="#9C4A2B">','''<meta name="theme-color" content="#9C4A2B">
 <meta name="description" content="Gestion et contrôle de la ferme avicole de M. Konaté, Kankan">
 <link rel="manifest" href="manifest.webmanifest">
