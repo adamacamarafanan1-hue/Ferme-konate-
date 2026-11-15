@@ -1,0 +1,13 @@
+Ferme avicole de M. Konaté — application de gestion (version Supabase)
+
+site/    : l'application prête à mettre en ligne (Vercel, Netlify ou tout hébergement de fichiers).
+           Ouvrir index.html depuis un serveur web (pas en double-cliquant le fichier).
+source/  : le code de travail
+   src/donnees.js      liaison avec la base Supabase, file d'attente sans réseau, temps réel
+   src/acces.js        connexion par code, premier code du DG, gestion de l'équipe
+   src/telephone.js    installation sur le téléphone, rappels sonores des ramassages
+   supabase/functions/acces/index.ts   fonction du serveur (connexion et équipe)
+   test/               tests automatiques des 3 rôles
+
+Base : projet Supabase « ferme-konate » (Paris). Aucune clé secrète n'est dans ces fichiers :
+la clé publique de l'application ne donne accès à rien sans connexion par code.
