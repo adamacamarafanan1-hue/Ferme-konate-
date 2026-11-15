@@ -46,9 +46,15 @@ function vueEquipe(){
     h+='<span class="eq-btns"><button class="btn sec petit" data-act="ouvrir" data-v="codeUser" data-id="'+u.id+'">'+(dg?"Changer mon code":"Changer le code")+'</button>';
     if(!dg)h+=(u.bloque?'<button class="btn vert petit" data-act="bloquer" data-id="'+u.id+'">Débloquer</button>':'<button class="btn dang petit" data-act="bloquer" data-id="'+u.id+'">Bloquer</button>')+'<button class="btn sec petit" data-act="supprUser" data-id="'+u.id+'">Retirer</button>';
     h+='</span></span></li>'});
-  h+='</ul></div><h3>Ajouter une personne</h3><form class="bloc" data-f="user"><div class="champ"><label for="uNom">Nom</label><input id="uNom" name="nom" required minlength="2" maxlength="40" autocomplete="off" placeholder="Ex. : Laye"></div><div class="champ"><span class="etiq">Rôle</span><div class="chips" data-groupe="role">';
-  [["com","Commercial"],["gest","Technicien"]].forEach(function(r,i){h+='<button type="button" class="chip '+(i===0?"on":"")+'" data-act="chipForm" data-v="'+r[0]+'">'+r[1]+'</button>'});
-  h+='</div><input type="hidden" name="role" value="com"></div><div class="champ"><label for="uPin">Son code secret (6 chiffres)</label><input id="uPin" name="pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="off" value="'+codeAuHasard()+'" style="font-size:26px;letter-spacing:6px"><span class="hint">Un code est proposé. Vous pouvez le changer. Notez-le et donnez-le en main propre.</span></div><button class="btn">Ajouter</button></form>';
+  /* Le formulaire garde ce qui est déjà tapé (nom, rôle, code) même quand l'écran se met à jour */
+  var lire=function(sel){var e=document.querySelector(sel);return e?e.value:null};
+  if(V.viderAjout){V.viderAjout=false;V.codePropose=null}
+  else{var dn=lire("#uNom"),dp=lire("#uPin"),dr=lire('form[data-f="user"] input[name="role"]');if(dn!==null){V.ajNom=dn;V.ajRole=dr||"com";if(dp)V.codePropose=dp}}
+  if(!V.codePropose)V.codePropose=codeAuHasard();
+  var nomA=V.viderNom?"":(V.ajNom||""),roleA=V.ajRole||"com";if(V.viderNom){V.viderNom=false;V.ajNom="";V.ajRole="com";roleA="com"}
+  h+='</ul></div><h3>Ajouter une personne</h3><form class="bloc" data-f="user"><div class="champ"><label for="uNom">Nom</label><input id="uNom" name="nom" required minlength="2" maxlength="40" autocomplete="off" placeholder="Ex. : Laye" value="'+esc(nomA)+'"></div><div class="champ"><span class="etiq">Rôle</span><div class="chips" data-groupe="role">';
+  [["com","Commercial"],["gest","Technicien"]].forEach(function(r){h+='<button type="button" class="chip '+(r[0]===roleA?"on":"")+'" data-act="chipForm" data-v="'+r[0]+'">'+r[1]+'</button>'});
+  h+='</div><input type="hidden" name="role" value="'+roleA+'"></div><div class="champ"><label for="uPin">Son code secret (6 chiffres)</label><input id="uPin" name="pin" inputmode="numeric" maxlength="6" required autocomplete="off" value="'+esc(V.codePropose)+'" style="font-size:26px;letter-spacing:6px"><span class="hint">Ce code ne change pas tant que vous n\'avez pas touché « Ajouter ». Notez-le et donnez-le en main propre.</span></div><button class="btn">Ajouter</button></form>';
   if(navigator.onLine===false)h+='<p class="aide">Il faut du réseau pour ajouter, bloquer ou changer un code.</p>';
   return h;
 }

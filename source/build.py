@@ -101,7 +101,7 @@ rep('''else if(a==="copierSauv"){copier(JSON.stringify(STATE),"Sauvegarde copié
 a=js.index('  if(type==="user"){');z=js.index('  if(type==="ferme"){',a)
 js=js[:a]+'''  if(type==="user"){if(!estDG())return toast("Seul le DG peut ajouter une personne");var cp=g("pin").replace(/\\s/g,""),nm=g("nom"),rl=g("role")||"com";
     if(nm.length<2)return toast("Indiquez le nom");if(!/^\\d{6}$/.test(cp))return toast("Le code doit avoir 6 chiffres");if(codeFaible(cp))return toast("Ce code est trop facile à deviner");
-    actionEquipe("ajouter",{nom:nm,role:ROLE_BASE[rl],code:cp},"",function(){V.F={type:"ok",msg:esc(nm)+" est ajouté comme "+ROLES[rl].toLowerCase()+".<br>Son code : <b style=\\"font-size:26px;letter-spacing:3px\\">"+codeLisible(cp)+"</b><br>Donnez-le-lui en main propre."};rendre()});return}
+    actionEquipe("ajouter",{nom:nm,role:ROLE_BASE[rl],code:cp},"",function(){V.viderAjout=true;V.viderNom=true;V.F={type:"ok",msg:esc(nm)+" est ajouté comme "+ROLES[rl].toLowerCase()+".<br>Son code : <b style=\\"font-size:26px;letter-spacing:3px\\">"+codeLisible(cp)+"</b><br>Donnez-le-lui en main propre."};rendre()});return}
 '''+js[z:]
 rep("""  if(type==="ferme"){var R=D.reglages;""","""  if(type==="ferme"){if(!estDG())return;var R=D.reglages;""")
 rep("  h+=carteAction(actionTechnicien(d));\n","  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d);\n")
