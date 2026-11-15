@@ -12,7 +12,7 @@ var COMPS=[
 ];
 function NR(){return D.reglages.comps.length*4}
 /* Liste de l'application → table de la base */
-var TABLES={comptages:"comptages_poules",mouv:"mouvements_poules",malades:"malades",vaccins:"vaccins",prod:"ramassages",ventes:"ventes",regl:"paiements_credits",dep:"depenses",alimIn:"achats_aliment",alimOut:"aliment_donne",vers:"versements"};
+var TABLES={comptages:"comptages_poules",mouv:"mouvements_poules",malades:"malades",vaccins:"vaccins",prod:"ramassages",ventes:"ventes",regl:"paiements_credits",dep:"depenses",alimIn:"achats_aliment",alimOut:"aliment_donne",vers:"versements",inv:"inventaires"};
 var LISTES=Object.keys(TABLES);
 var LISTE_DE={};LISTES.forEach(function(l){LISTE_DE[TABLES[l]]=l});
 var ROLES={proprio:"DG",gest:"Technicien",com:"Commercial"};
@@ -49,7 +49,8 @@ function versApp(l,b){
   else if(l==="malades"){x.comp=b.batiment_id;x.n=num(b.nombre);x.signes=b.signes||"";x.trait=b.traitement||""}
   else if(l==="vaccins"){x.comp=b.batiment_id||"TOUS";x.vaccin=b.produit;x.rappel=b.rappel||"";x.fait=!!b.rappel_fait}
   else if(l==="alimOut"){x.comp=b.batiment_id;x.sacs=num(b.sacs)}
-  else if(l==="alimIn"){x.sacs=num(b.sacs);x.montant=num(b.montant);x.recu=b.recu_chemin||""}
+  else if(l==="alimIn"){x.sacs=num(b.sacs);x.montant=num(b.montant);x.recu=b.recu_chemin||"";x.sacsRecus=b.sacs_recus==null?null:num(b.sacs_recus);x.recuPar=b.recu_par?nomDe(b.recu_par):"";x.recuLe=b.recu_le||null}
+  else if(l==="inv"){x.type=b.type;x.compte=num(b.compte);x.theorique=b.theorique==null?null:num(b.theorique);x.note=b.note||""}
   else if(l==="dep"){x.cat=b.categorie;x.montant=num(b.montant);x.note=b.detail||"";x.imprevu=!!b.imprevu;x.recu=b.recu_chemin||"";x.auto=b.achat_aliment_id||""}
   else if(l==="ventes"){x.client=b.client;x.alv=num(b.alveoles);x.prix=num(b.prix_alveole);x.paye=num(b.paye)}
   else if(l==="regl"){x.vente=b.vente_id;x.montant=num(b.montant)}
@@ -70,6 +71,7 @@ function versBase(l,r){
   else if(l==="dep"){a("categorie",r.cat);if("montant" in r)a("montant",entier(r.montant));if("note" in r)a("detail",(r.note||"").trim()||null);if("imprevu" in r)a("imprevu",!!r.imprevu);if("recu" in r)a("recu_chemin",r.recu||null);if("auto" in r)a("achat_aliment_id",r.auto||null)}
   else if(l==="ventes"){if("client" in r)a("client",String(r.client||"").trim());if("alv" in r)a("alveoles",entier(r.alv));if("prix" in r)a("prix_alveole",entier(r.prix));if("paye" in r)a("paye",entier(r.paye))}
   else if(l==="regl"){a("vente_id",r.vente);if("montant" in r)a("montant",entier(r.montant))}
+  else if(l==="inv"){a("type",r.type);if("compte" in r)a("compte",Math.max(0,n0(r.compte)));if("theorique" in r)a("theorique",r.theorique==null?null:n0(r.theorique));if("note" in r)a("note",(r.note||"").trim()||null)}
   else if(l==="vers"){if("cycle" in r)a("cycle",r.cycle);if("montant" in r)a("montant",entier(r.montant));if("recu" in r)a("recu_chemin",r.recu||null)}
   return b;
 }
@@ -86,6 +88,7 @@ function reglagesApp(){
 function appliquer(rows,op){
   if(op.k==="ins"){rows[op.l][op.id]=Object.assign({saisi_par:PROFIL&&PROFIL.id,saisi_le:new Date().toISOString(),annule:false,apres_coup:false},op.row,{id:op.id})}
   else if(op.k==="maj"){var r=rows[op.l][op.id];if(r)rows[op.l][op.id]=Object.assign({},r,op.patch)}
+  else if(op.k==="rpc"&&op.f==="confirmer_reception"){var ac=rows.alimIn[op.args.p_id];if(ac)rows.alimIn[op.args.p_id]=Object.assign({},ac,{sacs_recus:op.args.p_sacs,recu_par:PROFIL&&PROFIL.id,recu_le:new Date().toISOString()})}
   else if(op.k==="rpc"&&op.f==="marquer_rappel_fait"){var v=rows.vaccins[op.args.p_id];if(v)rows.vaccins[op.args.p_id]=Object.assign({},v,{rappel_fait:true})}
 }
 function construireD(){
@@ -114,6 +117,7 @@ function ecrire(date,l,id,rec){
   var u=moi();if(!u){toast("Reconnectez-vous");return false}
   var op;
   if(rec===null)op={k:"maj",l:l,id:id,patch:{annule:true}};
+  else if(rec._rpc)op={k:"rpc",f:rec._rpc,args:rec.args};
   else if(l==="vaccins"&&rec._brut&&rec.fait)op={k:"rpc",f:"marquer_rappel_fait",args:{p_id:id}};
   else if(idBrut(l,id)){var r=Object.assign({},rec);delete r._brut;delete r.date;op={k:"maj",l:l,id:id,patch:versBase(l,r)}}
   else op={k:"ins",l:l,id:id,row:Object.assign(versBase(l,rec),{id:id,jour:date||auj(),saisi_tel:new Date().toISOString()})};

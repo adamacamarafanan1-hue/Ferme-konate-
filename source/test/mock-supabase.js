@@ -3,8 +3,8 @@
 (function(){
   var K="__mockdb";
   var LECTURE={comptages_poules:["dg","technicien","commercial"],mouvements_poules:["dg","technicien","commercial"],aliment_donne:["dg","technicien","commercial"],
-    malades:["dg","technicien"],vaccins:["dg","technicien"],ramassages:["dg","commercial"],ventes:["dg","commercial"],paiements_credits:["dg","commercial"],depenses:["dg","commercial"],achats_aliment:["dg","commercial"],versements:["dg","commercial"]};
-  var ECRITURE={comptages_poules:["dg","technicien"],mouvements_poules:["dg","technicien"],aliment_donne:["dg","technicien"]};
+    malades:["dg","technicien"],vaccins:["dg","technicien"],ramassages:["dg","commercial"],ventes:["dg","commercial"],paiements_credits:["dg","commercial"],depenses:["dg","commercial"],achats_aliment:["dg","commercial","technicien"],versements:["dg","commercial"],inventaires:["dg","technicien"]};
+  var ECRITURE={comptages_poules:["dg","technicien"],mouvements_poules:["dg","technicien"],aliment_donne:["dg","technicien"],inventaires:["dg","technicien"]};
   function xhr(m,u,c){var x=new XMLHttpRequest();x.open(m,"http://127.0.0.1:8766"+u,false);if(c)x.setRequestHeader("content-type","application/json");x.send(c||null);return x.responseText?JSON.parse(x.responseText):null}
   function base(){var b=xhr("GET","/db");if(!b){b={t:{},profils:[],reglages:[{id:true,ferme:"Ferme avicole de M. Konaté",lieu:"Kankan",prix_alveole:47000,oeufs_par_alveole:30,objectif_alveoles:80,heures_ramassage:["08:00:00","12:00:00","14:00:00","18:00:00"],marge_retard_min:30,jours_cycle:15,debut_cycles:null,seuil_ponte:70,seuil_morts:5,seuil_aliment:5}],batiments:[{id:"B1",nom:"Bâtiment 1",court:"Bât. 1",ordre:1},{id:"B2",nom:"Bâtiment 2",court:"Bât. 2",ordre:2}],codes:{},essais:{},stock:{}};}
     Object.keys(LECTURE).forEach(function(t){b.t[t]=b.t[t]||[]});return b}
@@ -60,7 +60,7 @@
   };
   /* ---------- temps réel ---------- */
   var ecouteurs=[];
-  function emettre(evts){evts.forEach(function(ev){ecouteurs.forEach(function(cb){try{cb({table:ev.table,new:JSON.parse(JSON.stringify(ev.new)),eventType:"UPDATE"})}catch(e){console.error(e)}})})}
+  function emettre(evts){var bb=base(),mm=moi(bb);evts.forEach(function(ev){if(LECTURE[ev.table]&&(!mm||LECTURE[ev.table].indexOf(mm.role)<0))return;ecouteurs.forEach(function(cb){try{cb({table:ev.table,new:JSON.parse(JSON.stringify(ev.new)),eventType:"UPDATE"})}catch(e){console.error(e)}})})}
   var vu=xhr("GET","/evt?n=0").n;
   setInterval(function(){if(hors()||!ecouteurs.length)return;var r=xhr("GET","/evt?n="+vu);vu=r.n;if(r.e.length)emettre(r.e)},300);
   /* ---------- fonction « acces » ---------- */
@@ -100,7 +100,8 @@
     return {auth:auth,
       from:function(t){return new Requete(t)},
       rpc:function(f,args){var q={then:function(ok,ko){var r;if(hors())r=ERR_RESEAU;else{var b=base(),m=moi(b);
-        if(f==="marquer_rappel_fait"){if(!m||["dg","technicien"].indexOf(m.role)<0)r={data:null,error:{message:"Réservé",code:"42501"},status:403};else{var v=b.t.vaccins.find(function(x){return x.id===args.p_id});if(v){v.rappel_fait=true;garder(b,[{table:"vaccins",new:v}])}r={data:!!v,error:null,status:200}}}}
+        if(f==="confirmer_reception"){if(!m||["dg","technicien"].indexOf(m.role)<0)r={data:null,error:{message:"Réservé",code:"42501"},status:403};else{var ac=b.t.achats_aliment.find(function(x){return x.id===args.p_id});if(ac){ac.sacs_recus=args.p_sacs;ac.recu_par=m.id;ac.recu_le=new Date().toISOString();garder(b,[{table:"achats_aliment",new:ac}])}r={data:!!ac,error:null,status:200}}}
+        else if(f==="marquer_rappel_fait"){if(!m||["dg","technicien"].indexOf(m.role)<0)r={data:null,error:{message:"Réservé",code:"42501"},status:403};else{var v=b.t.vaccins.find(function(x){return x.id===args.p_id});if(v){v.rappel_fait=true;garder(b,[{table:"vaccins",new:v}])}r={data:!!v,error:null,status:200}}}}
         return new Promise(function(res){setTimeout(function(){res(r)},15)}).then(ok,ko)}};return q},
       storage:{from:function(){return {
         upload:function(path,blob){if(hors())return Promise.reject(new TypeError("Failed to fetch"));var b=base();b.stock[path]=blob.size;garder(b);window.__uploads=(window.__uploads||[]).concat([path]);return Promise.resolve({data:{path:path},error:null})},

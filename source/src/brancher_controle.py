@@ -11,7 +11,17 @@ def appliquer(rep):
         '+num("margeRam","Délai avant de signaler un retard (minutes)",R.margeRam);\n    h+=\'<h3 class="sous-t">Références du contrôle de cohérence</h3>\'+num("poulesRef","Nombre de poules déclaré",R.poulesRef)+num("sacsMin","Minimum de sacs d\\\'aliment par jour",R.sacsMin)+num("sacsMax","Maximum de sacs d\\\'aliment par jour",R.sacsMax)+num("prixSac","Prix d\\\'un sac d\\\'aliment (GNF)",R.prixSac)+num("kgSac","Poids d\\\'un sac (kg)",R.kgSac)+num("ponteMin","Taux de ponte normal minimum (%)",R.ponteMin);')
     rep('["prix","oeufsAlv","objectif","seuilPonte","seuilMorts","seuilAliment","margeRam"].forEach',
         '["prix","oeufsAlv","objectif","seuilPonte","seuilMorts","seuilAliment","margeRam","poulesRef","sacsMin","sacsMax","prixSac","kgSac","ponteMin"].forEach')
+    rep('function(a){return a.sacs})-somme(D.alimOut','function(a){return a.sacsRecus!=null?a.sacsRecus:a.sacs})-somme(D.alimOut')
+    rep('versement:fVersement,','versement:fVersement,inventaire:fInventaire,reception:fReception,')
+    rep('  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d);\n','  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d)+blocControleTech();\n')
+    rep('  if(!(estDG()&&F.changerDate&&F.date&&F.date<=auj()))F.date=auj();\n','  if(!(estDG()&&F.changerDate&&F.date&&F.date<=auj()))F.date=auj();\n  if(F.type==="inventaire"||F.type==="reception")return validerControle(F);\n')
+    rep('  else if(a==="okRejet"){','  else if(a==="ouvrirInv"){var ki=b.getAttribute("data-v");if(ki==="caisse"&&!estDG())return;V.F={type:"inventaire",kind:ki,n:"",note:"",date:auj()};rendre()}\n  else if(a==="ouvrirRecep"){var ar=D.alimIn.find(function(x){return x.id===b.getAttribute("data-id")});if(!ar)return;V.F={type:"reception",achat:ar.id,n:ar.sacs,date:auj()};rendre()}\n  else if(a==="okRejet"){')
 CSS = """
+.ctrl-invs{display:grid;gap:8px;margin:6px 0}
+.ctrl-inv{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;border-radius:14px;border:1.5px solid var(--trait);background:var(--surface);color:var(--encre);font:inherit;cursor:pointer}
+.ctrl-inv .x{flex:1;min-width:0}.ctrl-inv b{display:block;font-size:16px}.ctrl-inv small{display:block;color:var(--gris);font-size:13px}
+.ctrl-inv .rub-ic svg{width:24px;height:24px}.ctrl-inv .fl{font-weight:800;color:var(--laterite);font-size:14px}
+.ctrl-inv.en-retard{border-color:var(--c-prod)}.ctrl-inv.en-retard small{color:var(--c-prod)}
 .ctrl-carte{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:12px 0 10px;padding:14px;border-radius:16px;border:1.5px solid var(--trait);background:var(--surface);color:var(--encre);font:inherit;cursor:pointer}
 .ctrl-carte .x{flex:1;min-width:0}.ctrl-carte b{display:block;font-family:Archivo,sans-serif;font-size:17px}.ctrl-carte small{display:block;color:var(--gris);font-size:13px;margin-top:2px}
 .ctrl-carte .rub-ic svg{width:28px;height:28px}.ctrl-carte.ctrl-b2{border-color:var(--alerte)}.ctrl-carte.ctrl-b1{border-color:var(--c-prod)}.ctrl-carte.on{box-shadow:0 0 0 3px var(--laterite-doux)}
