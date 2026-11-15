@@ -140,9 +140,15 @@ Deno.serve(async (req: Request) => {
       const { error } = await db.auth.admin.updateUserById(cible.id, { password: await motDePasse(secret, cible.id, b.code as string) });
       if (error) return rep({ erreur: "Changement du code impossible." }, 500);
       await db.rpc("connexion_resultat", { p_id: cible.id, p_ok: true });
-      // Le DG a choisi lui-même son code : il n'a plus à le changer
-      if (cible.id === moi.id) await db.from("profils").update({ code_a_changer: false }).eq("id", moi.id);
       await trace(cible.id, "changement_code", { nom: cible.nom });
+      // Changer le mot de passe ferme toutes les sessions de la personne (voulu : l'ancien code ne sert plus).
+      // Si le DG change son propre code, on lui rouvre aussitôt une session avec le nouveau code.
+      if (cible.id === moi.id) {
+        await db.from("profils").update({ code_a_changer: false }).eq("id", moi.id);
+        const essai = createClient(URL_PROJET, CLE_SERVEUR, SANS_SESSION);
+        const { data: s } = await essai.auth.signInWithPassword({ email: u.user.email!, password: await motDePasse(secret, moi.id, b.code as string) });
+        if (s?.session) return rep({ ok: true, session: { access_token: s.session.access_token, refresh_token: s.session.refresh_token, expires_at: s.session.expires_at } });
+      }
       return rep({ ok: true });
     }
 

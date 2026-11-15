@@ -234,7 +234,13 @@ function fonction(action,corps,avecJeton){
     var h={"Content-Type":"application/json",apikey:CFG.cle},s=r&&r.data&&r.data.session;
     if(avecJeton){if(!s)throw {message:"Reconnectez-vous pour faire cette action."};h.Authorization="Bearer "+s.access_token}
     return fetch(CFG.url+"/functions/v1/acces",{method:"POST",headers:h,body:JSON.stringify(Object.assign({action:action},corps||{}))}).then(function(res){
-      return res.json().catch(function(){return {}}).then(function(j){if(!res.ok){var e={message:j.erreur||"Erreur du serveur.",status:res.status,info:j};throw e}return j})},
+      return res.json().catch(function(){return {}}).then(function(j){
+        if(!res.ok){
+          /* Session fermée côté serveur (code changé, compte bloqué) : on revient proprement à l'écran d'entrée */
+          if(avecJeton&&res.status===401){perteSession("Pour votre sécurité, reconnectez-vous avec votre code.");throw {message:"Reconnectez-vous avec votre code, puis recommencez."}}
+          throw {message:j.erreur||"Erreur du serveur.",status:res.status,info:j}}
+        if(j&&j.session&&SB)return SB.auth.setSession({access_token:j.session.access_token,refresh_token:j.session.refresh_token}).then(function(){return j},function(){return j});
+        return j})},
       function(){throw {message:"Pas de réseau. Réessayez quand le téléphone est connecté.",reseau:true}});
   });
 }

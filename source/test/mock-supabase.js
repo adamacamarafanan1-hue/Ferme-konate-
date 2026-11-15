@@ -79,7 +79,7 @@
       var faible=function(k){return !/^\d{6}$/.test(k)||/^(\d)\1{5}$/.test(k)||k==="123456"||k==="654321"};
       if(a==="ajouter"){if(faible(c.code))return rep({erreur:"Ce code est trop facile à deviner."},400);var id=uid();b.profils.push({id:id,nom:c.nom,role:c.role,bloque:false,retire:false,code_a_changer:false});b.codes[id]=c.code;garder(b,[{table:"profils",new:b.profils[b.profils.length-1]}]);return rep({ok:true,id:id})}
       var cib=b.profils.find(function(x){return x.id===c.id});if(!cib)return rep({erreur:"Personne inconnue."},404);
-      if(a==="changer_code"){if(faible(c.code))return rep({erreur:"Ce code est trop facile à deviner."},400);b.codes[cib.id]=c.code;if(cib.id===qui.id)cib.code_a_changer=false;garder(b,[{table:"profils",new:cib}]);return rep({ok:true})}
+      if(a==="changer_code"){if(faible(c.code))return rep({erreur:"Ce code est trop facile à deviner."},400);b.codes[cib.id]=c.code;garder(b,[{table:"profils",new:cib}]);if(cib.id===qui.id){cib.code_a_changer=false;garder(b,[{table:"profils",new:cib}]);return rep({ok:true,session:{access_token:"tok-"+cib.id,refresh_token:"r"}})}return rep({ok:true})}
       if(cib.role==="dg")return rep({erreur:"Le DG ne peut pas être bloqué ni retiré."},400);
       if(a==="bloquer"){cib.bloque=c.bloque!==false;garder(b,[{table:"profils",new:cib}]);return rep({ok:true,bloque:cib.bloque})}
       if(a==="retirer"){cib.retire=true;cib.bloque=true;garder(b,[{table:"profils",new:cib}]);return rep({ok:true})}
