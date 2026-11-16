@@ -81,7 +81,8 @@ function reglagesApp(){
   return {ferme:g.ferme||"Ferme avicole de M. Konaté",lieu:g.lieu||"Kankan",prix:num(g.prix_alveole||47000),oeufsAlv:num(g.oeufs_par_alveole||30),objectif:num(g.objectif_alveoles==null?80:g.objectif_alveoles),
     seuilPonte:num(g.seuil_ponte==null?70:g.seuil_ponte),seuilMorts:num(g.seuil_morts==null?5:g.seuil_morts),seuilAliment:num(g.seuil_aliment==null?5:g.seuil_aliment),heureFin:18,
     heuresRam:(g.heures_ramassage||["08:00","12:00","14:00","18:00"]).map(hm),margeRam:num(g.marge_retard_min==null?30:g.marge_retard_min),comps:bats,debutCycles:g.debut_cycles||"",joursCycle:num(g.jours_cycle||15),
-    poulesRef:num(g.poules_reference==null?2997:g.poules_reference),sacsMin:num(g.sacs_min==null?5:g.sacs_min),sacsMax:num(g.sacs_max==null?7:g.sacs_max),prixSac:num(g.prix_sac==null?290000:g.prix_sac),kgSac:num(g.kg_sac||50),ponteMin:num(g.ponte_min==null?75:g.ponte_min)};
+    poulesRef:num(g.poules_reference==null?2997:g.poules_reference),sacsMin:num(g.sacs_min==null?5:g.sacs_min),sacsMax:num(g.sacs_max==null?7:g.sacs_max),prixSac:num(g.prix_sac==null?290000:g.prix_sac),kgSac:num(g.kg_sac||50),ponteMin:num(g.ponte_min==null?75:g.ponte_min),
+    ouvDate:g.ouv_date||"",ouvAlv:num(g.ouv_alveoles),ouvSacs:num(g.ouv_sacs),ouvCaisse:num(g.ouv_caisse)};
 }
 
 /* ---------- File d'attente appliquée par-dessus les données reçues ---------- */
@@ -127,7 +128,8 @@ function ecrire(date,l,id,rec){
 function ecrireConfig(){
   var R=D.reglages;
   OUT.push({k:"cfg",patch:{ferme:R.ferme,lieu:R.lieu,prix_alveole:entier(R.prix),oeufs_par_alveole:Math.max(1,entier(R.oeufsAlv)),objectif_alveoles:entier(R.objectif),seuil_ponte:Math.min(100,entier(R.seuilPonte)),seuil_morts:entier(R.seuilMorts),seuil_aliment:entier(R.seuilAliment),marge_retard_min:entier(R.margeRam),heures_ramassage:R.heuresRam.map(function(h){return h.length===5?h+":00":h}),debut_cycles:R.debutCycles||null,jours_cycle:Math.max(1,entier(R.joursCycle)),
-    poules_reference:entier(R.poulesRef),sacs_min:Math.min(n0(R.sacsMin),n0(R.sacsMax)),sacs_max:Math.max(n0(R.sacsMin),n0(R.sacsMax)),prix_sac:entier(R.prixSac),kg_sac:Math.max(1,entier(R.kgSac)),ponte_min:Math.min(100,entier(R.ponteMin))}});
+    poules_reference:entier(R.poulesRef),sacs_min:Math.min(n0(R.sacsMin),n0(R.sacsMax)),sacs_max:Math.max(n0(R.sacsMin),n0(R.sacsMax)),prix_sac:entier(R.prixSac),kg_sac:Math.max(1,entier(R.kgSac)),ponte_min:Math.min(100,entier(R.ponteMin)),
+    ouv_date:R.ouvDate||null,ouv_alveoles:R.ouvDate?entier(R.ouvAlv):null,ouv_sacs:R.ouvDate?Math.max(0,n0(R.ouvSacs)):null,ouv_caisse:R.ouvDate?entier(R.ouvCaisse):null}});
   R.comps.forEach(function(c){var b=(STATE.bats||[]).find(function(x){return x.id===c.id});if(b&&b.nom!==c.nom)OUT.push({k:"bat",id:c.id,nom:c.nom})});
   sauverOut();construireD();vider();
 }

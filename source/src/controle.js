@@ -31,8 +31,8 @@ function controleJour(d){
       if(prodOk&&g>=110&&isFinite(ponteV)&&ponteV*100<R.ponteMin-10)pts.push({n:2,t:"Les poules mangent normalement mais la ponte est très basse : des œufs peuvent manquer au ramassage."});
     }
   }
-  var st=stockAliment(d);if(st<0)pts.push({n:2,t:"On a donné <b>"+nb(-st)+" sacs</b> de plus que ce qui a été acheté : un achat d'aliment n'est pas saisi."});
-  var so=stockOeufs(d);if(so<0)pts.push({n:2,t:"<b>"+nb(Math.ceil(-so/R.oeufsAlv))+" alvéoles</b> vendues de plus que ce qui a été ramassé : un ramassage n'est pas saisi."});
+  var st=stockAliment(d);if(st<0&&D.reglages.ouvDate)pts.push({n:2,t:"On a donné <b>"+nb(-st)+" sacs</b> de plus que ce qui a été acheté : un achat d'aliment n'est pas saisi."});
+  var so=stockOeufs(d);if(so<0&&D.reglages.ouvDate)pts.push({n:2,t:"<b>"+nb(Math.ceil(-so/R.oeufsAlv))+" alvéoles</b> vendues de plus que ce qui a été ramassé : un ramassage n'est pas saisi."});
   if(oeufs>0&&cas/oeufs>0.03)pts.push({n:1,t:"<b>"+pct(cas/oeufs)+" d'œufs cassés</b> ce jour (normal : moins de 3 %)."});
   if(poules>0&&mo/poules>0.002)pts.push({n:1,t:"<b>"+nb(mo)+" poules mortes</b> : plus que la normale (environ 1 pour 1 000 par jour)."});
   return {d:d,alv:alv,oeufs:oeufs,sacs:sacs,poules:poules,eff:eff,ponte:ponteV,g:g,prixS:prixS,coutAlim:coutAlim,valeur:valeur,reste:valeur-coutAlim,coutAlv:alv>0?coutAlim/alv:NaN,
@@ -82,7 +82,7 @@ IC.loupe='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-widt
 var INV={alveoles:["Alvéoles en stock","alvéoles","oeuf"],aliment:["Sacs d'aliment au magasin","sacs","aliment"],caisse:["Argent chez le commercial","GNF","ventes"]};
 TITRES.inventaire="Comptage";TITRES.reception="Réception d'aliment";
 function caisseTheorique(){
-  return somme(D.ventes,function(v){return v.paye})+somme(D.regl,function(r){return r.montant})-somme(D.dep,function(x){return x.montant})-somme(D.vers,function(v){return v.montant});
+  return n0(D.reglages.ouvCaisse)+somme(D.ventes,function(v){return v.paye})+somme(D.regl,function(r){return r.montant})-somme(D.dep,function(x){return x.montant})-somme(D.vers,function(v){return v.montant});
 }
 function theoriqueInv(t){return t==="alveoles"?stockAlv(auj()):t==="aliment"?stockAliment(auj()):caisseTheorique()}
 function dernierInv(t){var L=D.inv.filter(function(x){return x.type===t}).sort(function(a,b){return a.date===b.date?b.t-a.t:(a.date<b.date?1:-1)});return L[0]||null}
@@ -119,6 +119,14 @@ function validerControle(F){
     V.F={type:"ok",msg:estDG()?(e===0?"Comptage conforme : "+nb(c)+" "+t[1]+".":"Compté : "+nb(c)+" "+t[1]+", attendu : "+nb(th)+".<br><b class=\"rouge\">Écart : "+signe(e)+" "+t[1]+(F.kind==="caisse"?"":" ("+gnf(valeurEcart(F.kind,e))+")")+"</b>"):"Comptage enregistré : "+nb(c)+" "+t[1]+"."};
     vibrer();rendre();return;
   }
+  if(F.type==="ouverture"){
+    if(!estDG())return toast("Réservé au DG");
+    if(String(F.sacs)===""||String(F.n)==="")return toast("Indiquez les sacs et l'argent, même 0");
+    var Ro=D.reglages;Ro.ouvDate=Ro.ouvDate||auj();Ro.ouvAlv=Math.max(0,Math.round(n0(F.alv)));Ro.ouvSacs=Math.max(0,n0(F.sacs));Ro.ouvCaisse=Math.max(0,Math.round(n0(F.n)));
+    /* Les alvéoles déjà saisies depuis le démarrage sont déjà comptées : on garde seulement ce qui existait avant */
+    ecrireConfig();
+    V.F={type:"ok",msg:"Inventaire d'ouverture enregistré : "+nb(Ro.ouvAlv)+" alvéoles, "+nb(Ro.ouvSacs)+" sacs, "+gnf(Ro.ouvCaisse)+" chez le commercial.<br>Les contrôles partent maintenant de ces chiffres."};vibrer();rendre();return;
+  }
   if(F.type==="reception"){
     var a=D.alimIn.find(function(x){return x.id===F.achat});if(!a)return toast("Achat introuvable");
     if(String(F.n)===""||n0(F.n)<0)return toast("Indiquez les sacs arrivés");
@@ -143,7 +151,7 @@ function signaux(){
   /* Inventaires */
   ["alveoles","aliment","caisse"].forEach(function(t){var L=dernierInv(t),T=INV[t];
     if(!L){if(t!=="caisse")S.push({n:1,t:"<b>"+T[0]+"</b> : jamais comptés. Faites un comptage réel."});return}
-    if(L.theorique!=null){var e=L.compte-L.theorique;if(Math.abs(e)>=(t==="caisse"?1000:1))S.push({n:e<0?2:1,t:"<b>"+T[0]+"</b> "+quand(L.date)+" : compté "+nb(L.compte)+", attendu "+nb(L.theorique)+" → écart <b>"+signe(e)+" "+T[1]+"</b>"+(t==="caisse"?"":" ("+gnf(valeurEcart(t,e))+")")+"."})}
+    if(L.theorique!=null&&D.reglages.ouvDate){var e=L.compte-L.theorique;if(Math.abs(e)>=(t==="caisse"?1000:1))S.push({n:e<0?2:1,t:"<b>"+T[0]+"</b> "+quand(L.date)+" : compté "+nb(L.compte)+", attendu "+nb(L.theorique)+" → écart <b>"+signe(e)+" "+T[1]+"</b>"+(t==="caisse"?"":" ("+gnf(valeurEcart(t,e))+")")+"."})}
     if(t!=="caisse"&&joursDepuis(L.date)>7)S.push({n:1,t:"<b>"+T[0]+"</b> : dernier comptage il y a "+joursDepuis(L.date)+" jours. Il en faut un par semaine."});
   });
   /* Réception de l'aliment */
@@ -182,6 +190,7 @@ function chiffresMois(d){
 }
 function sectionsComptable(d){
   var R=D.reglages,h='',S=signaux();
+  if(estDG())h+=blocOuverture();
   h+='<h3 class="sous-t">Comptages réels</h3><div class="ctrl-invs">'+(estDG()?boutonInv("caisse","Compter l'argent du commercial"):"")+boutonInv("alveoles","Compter les alvéoles")+boutonInv("aliment","Compter les sacs d'aliment")+'</div>';
   h+='<p class="aide">Attendu maintenant : '+nb(stockAlv(auj()))+' alvéoles, '+nb(stockAliment(auj()))+' sacs, '+gnf(caisseTheorique())+' chez le commercial.</p>';
   var R2=receptionsAttente();if(R2.length)h+='<div class="ctrl-pt ctrl-att">'+IC.aliment+'<span><b>'+R2.length+' achat'+(R2.length>1?"s":"")+' d\'aliment</b> à confirmer par le technicien. <button class="lien" data-act="ouvrirRecep" data-id="'+R2[0].id+'">Confirmer moi-même</button></span></div>';
@@ -213,3 +222,16 @@ function majClignote(){
     if(k==="dep"){var n=depNonVues(),s=b.querySelector(".rub-nouv");if(n&&!s){s=document.createElement("span");s.className="rub-nouv";b.appendChild(s)}if(s){if(n)s.textContent=n+" nouvelle"+(n>1?"s":"");else s.remove()}b.classList.toggle("a-nouv",!!n)}});
 }
 setInterval(majClignote,3000);
+
+/* ---------- Inventaire d'ouverture (une fois, au démarrage) ---------- */
+TITRES.ouverture="Inventaire d'ouverture";
+function fOuverture(){
+  return '<div class="resume">Ce qui existait <b>avant le premier jour</b> d\'utilisation de l\'application. Comptez-le une fois : tous les contrôles partent de là.</div>'+
+    compteur("alv","Alvéoles en stock avant le démarrage",1,[-10,10])+compteur("sacs","Sacs d'aliment au magasin avant le démarrage",1,[-10,10],true)+champMontant("n","Argent qui était chez le commercial (GNF)")+
+    '<p class="aide">Si vous ne savez pas, mettez 0 et corrigez au premier vrai comptage.</p>';
+}
+function blocOuverture(){
+  var R=D.reglages;
+  if(!R.ouvDate)return '<div class="ctrl-pt ctrl-alr">'+IC.alerte+'<span><b>Inventaire d\'ouverture à faire.</b> Sans lui, les stocks partent de zéro et les alertes de stock et de caisse sont fausses. <button class="btn petit" style="margin-top:8px" data-act="ouvrirOuv">Faire l\'inventaire d\'ouverture</button></span></div>';
+  return '<p class="aide">Inventaire d\'ouverture du '+dateCourte(R.ouvDate)+' : '+nb(R.ouvAlv)+' alv., '+nb(R.ouvSacs)+' sacs, '+gnf(R.ouvCaisse)+'. <button class="lien" data-act="ouvrirOuv">Corriger</button></p>';
+}

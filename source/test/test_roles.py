@@ -231,7 +231,7 @@ with sync_playwright() as pw:
     B.click('[data-act="bordJour"][data-v="-1"]'); B.wait_for_timeout(400)
     txt = B.locator("#panneau-menu").inner_text()
     ok("plus que le maximum de 7 sacs" in txt, "8,5 sacs donnés hier : signalé au-dessus du maximum de 7")
-    ok("plus que ce qui a été acheté" in txt, "aliment donné sans achat saisi : signalé")
+    ok("plus que ce qui a été acheté" not in txt and "Inventaire d'ouverture à faire" in txt, "sans inventaire d'ouverture : pas de fausse alerte de stock, mais l'invitation à le faire")
     capture(B, "14b_controle")
     B.locator("#panneau-menu").screenshot(path=f"{SHOTS}/14c_controle_panneau.png")
     ok(A.locator("button.ctrl-carte").count() == 0, "le commercial ne voit pas le contrôle")
@@ -273,6 +273,14 @@ with sync_playwright() as pw:
         ok(False, "bouton « Rappel fait » visible chez le technicien")
 
     print("8b. Comptages réels et réception de l'aliment")
+    B.evaluate("V.ouvertP=null;rendreApp()"); B.click('button.ctrl-carte'); B.wait_for_timeout(400)
+    ok(B.locator('[data-act="ouvrirOuv"]').count() >= 1 and "Inventaire d'ouverture à faire" in B.locator("#panneau-menu").inner_text(), "le DG est invité à faire l'inventaire d'ouverture")
+    B.click('[data-act="ouvrirOuv"]'); B.wait_for_timeout(300)
+    B.fill("#cpt_alv", "40"); B.fill("#cpt_sacs", "12"); B.fill("#m_n", "500000"); valider(B); fermer_ok(B)
+    rg = base()["reglages"][0]
+    ok(rg.get("ouv_alveoles") == 40 and rg.get("ouv_sacs") == 12 and rg.get("ouv_caisse") == 500000 and rg.get("ouv_date"), "inventaire d'ouverture enregistré (40 alv., 12 sacs, 500 000)")
+    ok(B.evaluate("stockAliment(auj())") == B.evaluate("12+somme(D.alimIn,function(a){return a.sacs})-somme(D.alimOut,function(a){return a.sacs})"), "le stock d'aliment part de l'ouverture")
+    B.click('button.ctrl-carte'); B.wait_for_timeout(300)
     A.click('button[data-act="ouvrir"][data-v="achat"]') if A.locator('button[data-act="ouvrir"][data-v="achat"]').count() else A.evaluate("ouvrir('achat')")
     A.wait_for_timeout(300); A.fill("#cpt_sacs", "10"); A.fill("#m_montant", "2900000"); valider(A); fermer_ok(A)
     ach = [x for x in base()["t"]["achats_aliment"] if x["saisi_par"] == LAYE]

@@ -20,6 +20,11 @@ def appliquer(rep):
     rep("  return h+'</div><div id=\"panneau-menu\">'+panneauMenu(P)+'</div>';\n}","  setTimeout(majClignote,0);return h+'</div><div id=\"panneau-menu\">'+panneauMenu(P)+'</div>';\n}",2)
     rep('  V.ouvertP=V.ouvertP===k?null:k;V.jourOuvert=null;V.cycleOuvert=null;','  V.ouvertP=V.ouvertP===k?null:k;V.jourOuvert=null;V.cycleOuvert=null;if(V.ouvertP==="dep")ecrireLS(CLE_DEP_VU,Date.now());setTimeout(majClignote,0);')
     rep("  return h;\n}\n\n/* ================== FEUILLES DE SAISIE","  return h+'<p class=\"version\">Version '+VERSION_APP+'</p>';\n}\n\n/* ================== FEUILLES DE SAISIE")
+    rep('  var net=somme(D.prod.filter(','  var net=n0(D.reglages.ouvAlv)*D.reglages.oeufsAlv+somme(D.prod.filter(')
+    rep('function stockAliment(d){return somme(','function stockAliment(d){return n0(D.reglages.ouvSacs)+somme(')
+    rep('inventaire:fInventaire,reception:fReception,','inventaire:fInventaire,reception:fReception,ouverture:fOuverture,')
+    rep('  if(F.type==="inventaire"||F.type==="reception")return validerControle(F);','  if(F.type==="inventaire"||F.type==="reception"||F.type==="ouverture")return validerControle(F);')
+    rep('  else if(a==="ouvrirInv"){','  else if(a==="ouvrirOuv"){if(!estDG())return;var Ro=D.reglages;V.F={type:"ouverture",alv:Ro.ouvDate?Ro.ouvAlv:"",sacs:Ro.ouvDate?Ro.ouvSacs:"",n:Ro.ouvDate?Ro.ouvCaisse:"",date:auj()};rendre()}\n  else if(a==="ouvrirInv"){')
 CSS = """
 .rub{position:relative}
 .rub.clignote{border-color:var(--m);animation:rub-bord 1.6s ease-in-out infinite}
