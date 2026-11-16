@@ -722,6 +722,11 @@ h3.sous-t{font-size:16px;color:var(--c);margin:14px 2px 8px}
 .bandeau.b-refus{background:var(--alerte-doux);color:var(--encre)}
 .btn svg{width:20px;height:20px;vertical-align:-4px;margin-right:6px}
 
+.rub{position:relative}
+.rub.clignote{animation:rub-clig 1.3s ease-in-out infinite}
+@keyframes rub-clig{0%,100%{box-shadow:0 0 0 0 transparent;border-color:var(--trait)}50%{box-shadow:0 0 0 4px var(--c,var(--laterite));border-color:var(--c,var(--laterite))}}
+@media (prefers-reduced-motion:reduce){.rub.clignote{animation:none;box-shadow:0 0 0 3px var(--c,var(--laterite))}}
+.rub-nouv{position:absolute;top:-8px;right:-4px;background:var(--alerte);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap}
 .ctrl-invs{display:grid;gap:8px;margin:6px 0}
 .ctrl-inv{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;border-radius:14px;border:1.5px solid var(--trait);background:var(--surface);color:var(--encre);font:inherit;cursor:pointer}
 .ctrl-inv .x{flex:1;min-width:0}.ctrl-inv b{display:block;font-size:16px}.ctrl-inv small{display:block;color:var(--gris);font-size:13px}

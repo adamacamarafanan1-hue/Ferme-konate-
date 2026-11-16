@@ -199,3 +199,16 @@ function sectionsComptable(d){
 var CSS_CTRL2=1;
 
 function quand(d){return d===auj()?"aujourd'hui":d===decal(auj(),-1)?"hier":"le "+dateCourte(d)}
+
+/* ---------- Menus qui clignotent chez le DG ----------
+   « Aujourd'hui » clignote toujours ; « Dépenses » clignote dès qu'une dépense arrive,
+   jusqu'à ce que le DG ouvre le menu Dépenses sur ce téléphone. */
+var CLE_DEP_VU="fermeKonate.depVu";
+function depNonVues(){var vu=n0(lireLS(CLE_DEP_VU,0));return D.dep.filter(function(x){return n0(x.t)>vu}).length}
+function doitClignoter(k){return k==="jour"||(k==="dep"&&depNonVues()>0)}
+function majClignote(){
+  if(V.ouvertP==="dep"&&depNonVues())ecrireLS(CLE_DEP_VU,Date.now());
+  document.querySelectorAll(".grille-rub .rub").forEach(function(b){var k=b.getAttribute("data-v"),c=doitClignoter(k);b.classList.toggle("clignote",c);
+    if(k==="dep"){var n=depNonVues(),s=b.querySelector(".rub-nouv");if(n&&!s){s=document.createElement("span");s.className="rub-nouv";b.appendChild(s)}if(s){if(n)s.textContent=n+" nouvelle"+(n>1?"s":"");else s.remove()}}});
+}
+setInterval(majClignote,3000);

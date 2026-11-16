@@ -16,7 +16,15 @@ def appliquer(rep):
     rep('  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d);\n','  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d)+blocControleTech();\n')
     rep('  if(!(estDG()&&F.changerDate&&F.date&&F.date<=auj()))F.date=auj();\n','  if(!(estDG()&&F.changerDate&&F.date&&F.date<=auj()))F.date=auj();\n  if(F.type==="inventaire"||F.type==="reception")return validerControle(F);\n')
     rep('  else if(a==="okRejet"){','  else if(a==="ouvrirInv"){var ki=b.getAttribute("data-v");if(ki==="caisse"&&!estDG())return;V.F={type:"inventaire",kind:ki,n:"",note:"",date:auj()};rendre()}\n  else if(a==="ouvrirRecep"){var ar=D.alimIn.find(function(x){return x.id===b.getAttribute("data-id")});if(!ar)return;V.F={type:"reception",achat:ar.id,n:ar.sacs,date:auj()};rendre()}\n  else if(a==="okRejet"){')
+    rep('(alerte?" alerte":"")+\'" data-act="menuOuvrir" data-v="\'+k+\'" aria-pressed','(alerte?" alerte":"")+(doitClignoter(k)?" clignote":"")+\'" data-act="menuOuvrir" data-v="\'+k+\'" aria-pressed',2)
+    rep("  return h+'</div><div id=\"panneau-menu\">'+panneauMenu(P)+'</div>';\n}","  setTimeout(majClignote,0);return h+'</div><div id=\"panneau-menu\">'+panneauMenu(P)+'</div>';\n}",2)
+    rep('  V.ouvertP=V.ouvertP===k?null:k;V.jourOuvert=null;V.cycleOuvert=null;','  V.ouvertP=V.ouvertP===k?null:k;V.jourOuvert=null;V.cycleOuvert=null;if(V.ouvertP==="dep")ecrireLS(CLE_DEP_VU,Date.now());setTimeout(majClignote,0);')
 CSS = """
+.rub{position:relative}
+.rub.clignote{animation:rub-clig 1.3s ease-in-out infinite}
+@keyframes rub-clig{0%,100%{box-shadow:0 0 0 0 transparent;border-color:var(--trait)}50%{box-shadow:0 0 0 4px var(--c,var(--laterite));border-color:var(--c,var(--laterite))}}
+@media (prefers-reduced-motion:reduce){.rub.clignote{animation:none;box-shadow:0 0 0 3px var(--c,var(--laterite))}}
+.rub-nouv{position:absolute;top:-8px;right:-4px;background:var(--alerte);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap}
 .ctrl-invs{display:grid;gap:8px;margin:6px 0}
 .ctrl-inv{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;border-radius:14px;border:1.5px solid var(--trait);background:var(--surface);color:var(--encre);font:inherit;cursor:pointer}
 .ctrl-inv .x{flex:1;min-width:0}.ctrl-inv b{display:block;font-size:16px}.ctrl-inv small{display:block;color:var(--gris);font-size:13px}
