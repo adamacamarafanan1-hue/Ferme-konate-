@@ -16,8 +16,8 @@ function controleJour(d){
     pts.push({n:1,t:"Poules comptées : <b>"+nb(eff)+"</b>, mais "+nb(R.poulesRef)+" déclarées ("+signe(eff-R.poulesRef)+"). Faites un comptage."});
   if(prodOk&&isFinite(ponteV)){
     var pp=ponteV*100;
-    if(pp<R.ponteMin-10)pts.push({n:2,t:"Ponte très basse : <b>"+Math.round(pp)+" %</b> (normal : au moins "+R.ponteMin+" %)."});
-    else if(pp<R.ponteMin)pts.push({n:1,t:"Ponte basse : <b>"+Math.round(pp)+" %</b> (normal : au moins "+R.ponteMin+" %)."});
+    if(pp<R.ponteMoyen)pts.push({n:2,t:"Ponte pas bonne : <b>"+Math.round(pp)+" %</b> (bon : "+R.ponteMin+" % et plus)."});
+    else if(pp<R.ponteMin)pts.push({n:1,t:"Ponte moyenne : <b>"+Math.round(pp)+" %</b> (bon : "+R.ponteMin+" % et plus)."});
     var m7=ponteMoy7(null,d);if(isFinite(m7)&&m7>0&&ponteV<m7*0.9)pts.push({n:1,t:"La ponte a baissé de <b>"+pct(1-ponteV/m7)+"</b> par rapport aux 7 jours d'avant."});
   }
   if(!prodOk&&d<auj())pts.push({n:2,t:"Aucun ramassage saisi ce jour."});
@@ -28,7 +28,7 @@ function controleJour(d){
     if(isFinite(g)){
       if(g<G_MIN)pts.push({n:1,t:"Ration faible : <b>"+Math.round(g)+" g</b> par poule. Une pondeuse a besoin de 110 à 125 g pour bien pondre."});
       else if(g>G_MAX)pts.push({n:1,t:"Ration très forte : <b>"+Math.round(g)+" g</b> par poule. Vérifiez les sacs ou le nombre de poules."});
-      if(prodOk&&g>=110&&isFinite(ponteV)&&ponteV*100<R.ponteMin-10)pts.push({n:2,t:"Les poules mangent normalement mais la ponte est très basse : des œufs peuvent manquer au ramassage."});
+      if(prodOk&&g>=110&&isFinite(ponteV)&&ponteV*100<R.ponteMoyen)pts.push({n:2,t:"Les poules mangent normalement mais la ponte est très basse : des œufs peuvent manquer au ramassage."});
     }
   }
   var st=stockAliment(d);if(st<0&&D.reglages.ouvDate)pts.push({n:2,t:"On a donné <b>"+nb(-st)+" sacs</b> de plus que ce qui a été acheté : un achat d'aliment n'est pas saisi."});
@@ -50,7 +50,7 @@ function contenuControle(){
   h+='<div class="temps-date"><button class="ico" data-act="bordJour" data-v="-1" aria-label="Jour d\'avant">'+ICO.retour+'</button><div><b>'+nomJour(d)+'</b><span>'+dComplete(d)+'</span></div><button class="ico" data-act="bordJour" data-v="1" aria-label="Jour d\'après" '+(d>=auj()?"disabled":"")+' style="transform:scaleX(-1)">'+ICO.retour+'</button></div>';
   var pp=isFinite(K.ponte)?Math.round(K.ponte*100):null,gg=isFinite(K.g)?Math.round(K.g):null;
   h+='<div class="ctrl-kpis">'+
-    kCtrl(pp==null?"–":pp+" %","Taux de ponte","normal : "+R.ponteMin+" % et plus",pp==null?0:pp<R.ponteMin-10?2:pp<R.ponteMin?1:0)+
+    kCtrl(pp==null?"–":pp+" %","Taux de ponte","bon : "+R.ponteMin+" % et plus",pp==null?0:pp<R.ponteMoyen?2:pp<R.ponteMin?1:0)+
     kCtrl(K.alimOk?nb(K.sacs):"–","Sacs donnés","entre "+nb(R.sacsMin)+" et "+nb(R.sacsMax),!K.alimOk?0:(K.sacs<R.sacsMin||K.sacs>R.sacsMax)?2:0)+
     kCtrl(gg==null||!K.alimOk?"–":gg+" g","Aliment par poule","normal : 110 à 125 g",gg==null||!K.alimOk?0:(gg<G_MIN||gg>G_MAX)?1:0)+
     kCtrl(nb(K.poules),"Poules",K.eff>0?"déclarées : "+nb(R.poulesRef):"chiffre déclaré",K.eff>0&&Math.abs(K.eff-R.poulesRef)/R.poulesRef>0.03?1:0)+'</div>';
@@ -250,35 +250,60 @@ function aLHeure(d,r){if(d!==auj())return false;var h=heureRam(r);return !!h&&ma
 
 /* ---------- Contrôle de la ponte chez le commercial ----------
    Le commercial voit seulement la ponte (pas la caisse ni les comptages) : normal, un peu bas, anormal. */
-function etatPonte(p){var m=n0(D.reglages.ponteMin);return !isFinite(p)?-1:p*100>=m?0:p*100>=m-10?1:2}
-var LIB_PONTE=[["ok","Normal"],["att","Un peu bas"],["alr","Anormal"]];
+function etatPonte(p){var R=D.reglages;return !isFinite(p)?-1:p*100>=n0(R.ponteMin)?0:p*100>=n0(R.ponteMoyen)?1:2}
+var LIB_PONTE=[["ok","Bon"],["att","Moyen"],["alr","Pas bon"]];
 function pillPonte(e,encours){return encours?'<span class="ctrl-p ctrl-cours">En cours</span>':e<0?'<span class="ctrl-p ctrl-cours">–</span>':'<span class="ctrl-p ctrl-'+LIB_PONTE[e][0]+'">'+LIB_PONTE[e][1]+'</span>'}
 function ponteBat(c,d){var e=effectif(c,d)||0;return e>0?oeufsJour(c,d)/e:NaN}
+
+
+/* ================= Barème de la ponte et suivi après chaque ramassage =================
+   Bon (vert) : ponteMin % et plus · Moyen (orange) : de ponteMoyen à ponteMin · Pas bon (rouge) : en dessous.
+   Après chaque ramassage, l'application estime la ponte de la journée : œufs déjà ramassés ÷ la part
+   habituellement ramassée à cette heure (calculée sur les 14 derniers jours complets de la ferme). */
+var PARTS_DEFAUT=[0.40,0.70,0.85,1];
+function partsRam(){
+  var cs=D.reglages.comps,tot=[0,0,0,0],n=0;
+  for(var i=1;i<=14;i++){var j=decal(auj(),-i);if(ramFaits(j)<NR())continue;var o=oeufsJour(null,j);if(!o)continue;
+    var c=0;RAMS.forEach(function(r){c+=somme(cs,function(x){return oeufsJour(x.id,j,r)});tot[r-1]+=c/o});n++}
+  if(n<3)return PARTS_DEFAUT;return tot.map(function(t,k){return k===3?1:Math.max(0.05,t/n)});
+}
+function tourFait(d,r){return D.reglages.comps.every(function(c){return ramSaisi(c.id,d,r)})}
+function suiviRam(d){
+  var P=partsRam(),poules=effectifTotal(d)||n0(D.reglages.poulesRef),cum=0,out=[];
+  RAMS.forEach(function(r){cum+=oeufsJour(null,d,r);var ok=tourFait(d,r),proj=ok&&poules>0?cum/poules/P[r-1]:NaN;
+    out.push({r:r,fait:ok,heure:heureRamFr(r),cumul:cum,pont:poules>0?cum/poules:NaN,proj:proj,etat:ok?etatPonte(proj):-1})});
+  return out;
+}
+function bareme(){var R=D.reglages;
+  return '<div class="bareme"><div class="bm bm-ok"><i></i><b>Bon</b><span>'+R.ponteMin+' % et plus</span></div><div class="bm bm-att"><i></i><b>Moyen</b><span>'+R.ponteMoyen+' à '+(R.ponteMin-1)+' %</span></div><div class="bm bm-alr"><i></i><b>Pas bon</b><span>moins de '+R.ponteMoyen+' %</span></div></div>';
+}
+function puces(d){
+  return '<div class="puces">'+suiviRam(d).map(function(x){var c=x.etat<0?"vide":LIB_PONTE[x.etat][0];
+    return '<div class="puce p-'+c+'"><small>R'+x.r+' · '+(x.heure||"")+'</small><b>'+(x.fait?Math.round(x.proj*100)+" %":"–")+'</b><span>'+(x.fait?LIB_PONTE[x.etat][1]:"à venir")+'</span></div>'}).join("")+'</div>';
+}
+function dernierSuivi(d){var L=suiviRam(d).filter(function(x){return x.fait});return L.length?L[L.length-1]:null}
 function blocPonteCommercial(d){
-  var R=D.reglages,fait=ramFaits(d),total=NR(),fini=fait>=total||d<auj(),poules=effectifTotal(d)||n0(R.poulesRef),oe=oeufsJour(null,d),p=poules>0?oe/poules:NaN,e=etatPonte(p);
-  var h='<h2 class="sec-titre c-prod">Contrôle de la ponte</h2><div class="bloc ponte-com">';
-  h+='<div class="pc-haut"><div><b class="pc-v'+(!fini?" pc-neutre":e>0?" pc-"+LIB_PONTE[e][0]:"")+'">'+(isFinite(p)&&fait?Math.round(p*100)+" %":"–")+'</b><span>des poules ont pondu '+(fini?"aujourd'hui":"jusqu'ici")+'</span></div>'+pillPonte(e,!fini&&fait>0)+'</div>';
-  h+='<p class="aide" style="margin:6px 0 10px">'+nb(oe)+' œufs pour '+nb(poules)+' poules · '+fait+'/'+total+' ramassages. Normal : <b>'+R.ponteMin+' % et plus</b>.'+(fini?"":" Le verdict tombe après le dernier ramassage.")+'</p>';
-  h+='<div class="pc-bats">';R.comps.forEach(function(c){var pb=ponteBat(c.id,d),eb=etatPonte(pb);h+='<div class="pc-bat"><small>'+esc(c.nom)+'</small><b>'+(isFinite(pb)&&fait?Math.round(pb*100)+" %":"–")+'</b>'+(fini?pillPonte(eb):"")+'</div>'});h+='</div>';
-  h+='<table class="t ctrl-7" style="margin-top:10px"><thead><tr><th>Jour</th><th>Alv.</th><th>Ponte</th><th></th></tr></thead><tbody>';
+  var R=D.reglages,S=dernierSuivi(d),fin=S&&S.r===4,h='<h2 class="sec-titre c-prod">Contrôle de la ponte</h2><div class="bloc ponte-com">';
+  var e=S?S.etat:-1,cls=e<0?"vide":LIB_PONTE[e][0];
+  h+='<div class="pc-verdict pv-'+cls+'"><div><small>'+(S?(fin?"Ponte de la journée":"Après le ramassage "+S.r+" · estimation pour la journée"):"Aucun ramassage complet pour l'instant")+'</small><b>'+(S?Math.round(S.proj*100)+" % · "+LIB_PONTE[e][1]:"En attente")+'</b></div></div>';
+  if(S)h+='<p class="aide" style="margin:6px 0 10px">'+nb(S.cumul)+' œufs ramassés pour '+nb(effectifTotal(d)||R.poulesRef)+' poules ('+Math.round(S.pont*100)+' % ont déjà pondu).'+(fin?"":" À cette heure, on ramasse en général "+Math.round(partsRam()[S.r-1]*100)+" % des œufs de la journée.")+'</p>';
+  h+=puces(d)+bareme();
+  h+='<table class="t ctrl-7" style="margin-top:12px"><thead><tr><th>Jour</th><th>Alv.</th><th>Ponte</th><th></th></tr></thead><tbody>';
   for(var i=1;i<=7;i++){var j=decal(d,-i),o=oeufsJour(null,j),pj=effectifTotal(j)||n0(R.poulesRef),pp=pj>0&&o>0?o/pj:NaN;
     h+='<tr><td>'+dateCourte(j)+'</td><td class="n">'+(o?nb(alvDe(o,cassesJour(null,j))):"–")+'</td><td class="n">'+(isFinite(pp)?Math.round(pp*100)+" %":"–")+'</td><td>'+pillPonte(etatPonte(pp))+'</td></tr>'}
   h+='</tbody></table>';
-  if(fini&&e===2)h+='<div class="ctrl-pt ctrl-alr" style="margin-top:10px">'+IC.alerte+'<span>Ponte anormale : vérifiez qu\'aucun ramassage n\'a été oublié, et prévenez le technicien (aliment, eau, poules malades).</span></div>';
+  if(e===2)h+='<div class="ctrl-pt ctrl-alr" style="margin-top:10px">'+IC.alerte+'<span><b>Ponte pas bonne.</b> Vérifiez qu\'aucun ramassage n\'a été oublié, et prévenez le technicien (aliment, eau, poules malades).</span></div>';
   return h+'</div>';
 }
-
-/* ---------- Bandeau de la ponte, bien visible chez le DG ---------- */
 function bandeauPonteDG(){
   if(!estDG())return "";
-  var R=D.reglages,a=auj(),h=decal(a,-1),fait=ramFaits(a),fini=fait>=NR();
-  var pj=function(d){var o=oeufsJour(null,d),p=effectifTotal(d)||n0(R.poulesRef);return p>0&&o>0?o/p:NaN};
-  var pA=pj(a),pH=pj(h),eA=etatPonte(pA),eH=etatPonte(pH);
-  /* Verdict mis en avant : aujourd'hui si la journée est finie, sinon hier */
-  var dV=fini?a:h,pV=fini?pA:pH,eV=fini?eA:eH,cls=eV<0?"neutre":LIB_PONTE[eV][0];
-  var titre=eV<0?"Ponte : pas encore de chiffres":eV===0?"Ponte normale":eV===1?"Ponte un peu basse":"Ponte anormale";
-  var h1='<div class="pdg pdg-'+cls+'" role="status"><div class="pdg-g"><span class="pdg-ic">'+IC.oeuf+'</span><div><small>'+(fini?"Aujourd'hui":"Hier")+' · '+dComplete(dV)+'</small><b>'+titre+'</b></div><span class="pdg-v">'+(isFinite(pV)?Math.round(pV*100)+" %":"–")+'</span></div>';
-  h1+='<p>Normal : '+R.ponteMin+' % et plus.'+(eV===2?" <b>Vérifiez les ramassages, l'aliment, l'eau et les poules malades.</b>":eV===1?" À surveiller dans les prochains jours.":"")+'</p>';
-  if(!fini)h1+='<div class="pdg-auj">Aujourd\'hui, en cours : <b>'+(isFinite(pA)&&fait?Math.round(pA*100)+" %":"–")+'</b> · '+fait+'/'+NR()+' ramassages</div>';
+  var R=D.reglages,a=auj(),S=dernierSuivi(a),hier=decal(a,-1),oH=oeufsJour(null,hier),pH0=effectifTotal(hier)||n0(R.poulesRef),pH=pH0>0&&oH>0?oH/pH0:NaN;
+  var useAuj=!!S,v=useAuj?S.proj:pH,e=useAuj?S.etat:etatPonte(pH),cls=e<0?"neutre":LIB_PONTE[e][0];
+  var titre=e<0?"Ponte : pas encore de chiffres":"Ponte "+(e===0?"bonne":e===1?"moyenne":"pas bonne");
+  var sous=useAuj?(S.r===4?"Aujourd'hui · journée complète":"Aujourd'hui · après le ramassage "+S.r+" (estimation)"):"Hier · "+dComplete(hier);
+  var h1='<div class="pdg pdg-'+cls+'" role="status"><div class="pdg-g"><span class="pdg-ic">'+IC.oeuf+'</span><div><small>'+sous+'</small><b>'+titre+'</b></div><span class="pdg-v">'+(isFinite(v)?Math.round(v*100)+" %":"–")+'</span></div>';
+  if(e===2)h1+='<p><b>Vérifiez les ramassages, l\'aliment, l\'eau et les poules malades.</b></p>';
+  h1+=puces(a)+bareme();
+  if(useAuj)h1+='<div class="pdg-auj">Hier : <b>'+(isFinite(pH)?Math.round(pH*100)+" %":"–")+'</b> '+pillPonte(etatPonte(pH))+'</div>';
   return h1+'</div>';
 }

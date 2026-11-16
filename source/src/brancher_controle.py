@@ -8,9 +8,9 @@ def appliquer(rep):
     rep('b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false")});pn.innerHTML=panneauMenu(P)}',
         'b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false")});var cc=document.querySelector(".ctrl-carte");if(cc)cc.classList.toggle("on",V.ouvertP==="ctrl");pn.innerHTML=panneauMenu(P)}')
     rep('+num("margeRam","Délai avant de signaler un retard (minutes)",R.margeRam);',
-        '+num("margeRam","Délai avant de signaler un retard (minutes)",R.margeRam);\n    h+=\'<h3 class="sous-t">Références du contrôle de cohérence</h3>\'+num("poulesRef","Nombre de poules déclaré",R.poulesRef)+num("sacsMin","Minimum de sacs d\\\'aliment par jour",R.sacsMin)+num("sacsMax","Maximum de sacs d\\\'aliment par jour",R.sacsMax)+num("prixSac","Prix d\\\'un sac d\\\'aliment (GNF)",R.prixSac)+num("kgSac","Poids d\\\'un sac (kg)",R.kgSac)+num("ponteMin","Taux de ponte normal minimum (%)",R.ponteMin);')
+        '+num("margeRam","Délai avant de signaler un retard (minutes)",R.margeRam);\n    h+=\'<h3 class="sous-t">Références du contrôle de cohérence</h3>\'+num("poulesRef","Nombre de poules déclaré",R.poulesRef)+num("sacsMin","Minimum de sacs d\\\'aliment par jour",R.sacsMin)+num("sacsMax","Maximum de sacs d\\\'aliment par jour",R.sacsMax)+num("prixSac","Prix d\\\'un sac d\\\'aliment (GNF)",R.prixSac)+num("kgSac","Poids d\\\'un sac (kg)",R.kgSac)+num("ponteMin","Ponte « bon » à partir de (%)",R.ponteMin)+num("ponteMoyen","Ponte « moyen » à partir de (%)",R.ponteMoyen);')
     rep('["prix","oeufsAlv","objectif","seuilPonte","seuilMorts","seuilAliment","margeRam"].forEach',
-        '["prix","oeufsAlv","objectif","seuilPonte","seuilMorts","seuilAliment","margeRam","poulesRef","sacsMin","sacsMax","prixSac","kgSac","ponteMin"].forEach')
+        '["prix","oeufsAlv","objectif","seuilPonte","seuilMorts","seuilAliment","margeRam","poulesRef","sacsMin","sacsMax","prixSac","kgSac","ponteMin","ponteMoyen"].forEach')
     rep('function(a){return a.sacs})-somme(D.alimOut','function(a){return a.sacsRecus!=null?a.sacsRecus:a.sacs})-somme(D.alimOut')
     rep('versement:fVersement,','versement:fVersement,inventaire:fInventaire,reception:fReception,')
     rep('  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d);\n','  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d)+blocControleTech();\n')
@@ -32,6 +32,24 @@ def appliquer(rep):
     rep("Vert = fait (nombre d\\'alvéoles). Rouge avec horloge = en retard.","Vert = fait (nombre d\\'alvéoles). Orange qui clignote = c\\'est l\\'heure. Rouge avec horloge = en retard.")
     rep("Touchez une case pour saisir ou corriger.</p></div>';","Touchez une case pour saisir ou corriger.</p></div>';\n  h+=blocPonteCommercial(d);")
 CSS = """
+.bareme{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.bm{border-radius:10px;padding:7px 8px;font-size:12px;line-height:1.25;background:var(--surface);border:1px solid var(--trait)}
+.bm i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.bm b{font-size:13px}.bm span{display:block;color:var(--gris);margin-top:2px}
+.bm-ok i{background:var(--vert)}.bm-att i{background:var(--c-prod)}.bm-alr i{background:var(--alerte)}
+.puces{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.puce{border-radius:12px;padding:7px 4px;text-align:center;border:1.5px solid var(--trait);background:var(--surface)}
+.puce small{display:block;font-size:11px;color:var(--gris);font-weight:700}.puce b{display:block;font-family:Archivo,sans-serif;font-size:19px;line-height:1.2}.puce span{display:block;font-size:11px;font-weight:800}
+.puce.p-ok{border-color:var(--vert);background:var(--vert-doux)}.puce.p-ok b,.puce.p-ok span{color:var(--vert)}
+.puce.p-att{border-color:var(--c-prod);background:var(--laterite-doux)}.puce.p-att b,.puce.p-att span{color:var(--c-prod)}
+.puce.p-alr{border-color:var(--alerte);background:var(--alerte-doux)}.puce.p-alr b,.puce.p-alr span{color:var(--alerte)}
+.puce.p-vide{border-style:dashed}.puce.p-vide span{color:var(--gris);font-weight:600}
+.pc-verdict{border-radius:14px;padding:12px 14px;border:2px solid var(--trait)}
+.pc-verdict small{display:block;font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.03em}.pc-verdict b{display:block;font-family:Archivo,sans-serif;font-size:26px;margin-top:2px}
+.pv-ok{border-color:var(--vert);background:var(--vert-doux)}.pv-ok b{color:var(--vert)}
+.pv-att{border-color:var(--c-prod);background:var(--laterite-doux)}.pv-att b{color:var(--c-prod)}
+.pv-alr{border-color:var(--alerte);background:var(--alerte-doux);animation:pdg-alerte 1.6s ease-in-out infinite}.pv-alr b{color:var(--alerte)}
+.pv-vide b{color:var(--gris)}
 .pdg{margin:12px 0 4px;border-radius:18px;padding:14px 16px;border:2px solid var(--vert);background:var(--vert-doux)}
 .pdg-g{display:flex;align-items:center;gap:12px}
 .pdg-g>div{flex:1;min-width:0}.pdg-g small{display:block;font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
