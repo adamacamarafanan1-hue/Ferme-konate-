@@ -181,6 +181,9 @@ with sync_playwright() as pw:
     v = [x for x in base(A)["t"]["ventes"] if x["saisi_par"] == LAYE and x["jour"] == datetime.date.today().isoformat()]
     ok(len(v) == 1 and v[0]["alveoles"] == 10 and v[0]["paye"] == 300000, "vente de 10 alvéoles avec 300 000 payés (crédit 170 000)")
     capture(A, "10_commercial_apres")
+    ok(A.locator(".ponte-com").count() == 1 and "Normal : " in A.locator(".ponte-com").inner_text(), "le commercial voit le contrôle de la ponte")
+    ok(A.locator(".ponte-com .ctrl-p").count() >= 7, "la ponte des 7 derniers jours est jugée (normal / un peu bas / anormal)")
+    A.locator(".ponte-com").screenshot(path=f"{SHOTS}/10b_ponte_commercial.png")
 
     print("6. Le DG voit en direct sur un autre téléphone")
     B = page_neuve(telephone(), "B")

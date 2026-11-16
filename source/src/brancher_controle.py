@@ -30,7 +30,15 @@ def appliquer(rep):
     rep(":rt2?IC.horloge:'<small>'+(heureRamFr(r)||\"à faire\")+'</small>')+'</button>'",
         ":rt2?IC.horloge:lh?'<small class=\"lh-h\">'+heureRamFr(r)+'</small><small class=\"lh-t\">C\\'est l\\'heure</small>':'<small>'+(heureRamFr(r)||\"à faire\")+'</small>')+'</button>'")
     rep("Vert = fait (nombre d\\'alvéoles). Rouge avec horloge = en retard.","Vert = fait (nombre d\\'alvéoles). Orange qui clignote = c\\'est l\\'heure. Rouge avec horloge = en retard.")
+    rep("Touchez une case pour saisir ou corriger.</p></div>';","Touchez une case pour saisir ou corriger.</p></div>';\n  h+=blocPonteCommercial(d);")
 CSS = """
+.ctrl-p.ctrl-cours{background:var(--trait);color:var(--gris)}
+.ponte-com .pc-haut{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ponte-com .pc-v{display:block;font-family:Archivo,sans-serif;font-size:34px;line-height:1;color:var(--vert)}
+.ponte-com .pc-v.pc-neutre{color:var(--encre)}.ponte-com .pc-v.pc-att{color:var(--c-prod)}.ponte-com .pc-v.pc-alr{color:var(--alerte)}
+.ponte-com .pc-haut span{font-size:14px;color:var(--gris)}
+.pc-bats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pc-bat{border:1px solid var(--trait);border-radius:12px;padding:8px 10px}.pc-bat small{display:block;color:var(--gris);font-size:12px}.pc-bat b{display:block;font-family:Archivo,sans-serif;font-size:20px}
 .gr-c.a-lheure{border:2px solid var(--c-prod);background:var(--laterite-doux);color:var(--c-prod);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;animation:lh-fond 1.2s ease-in-out infinite}
 .gr-c.a-lheure .lh-h{font-family:Archivo,sans-serif;font-size:16px;line-height:1.1;font-weight:800;animation:lh-txt 1.2s ease-in-out infinite}
 .gr-c.a-lheure .lh-t{font-size:9px;line-height:1.1;font-weight:800;text-transform:uppercase;letter-spacing:.03em}

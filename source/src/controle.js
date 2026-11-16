@@ -247,3 +247,23 @@ function blocOuverture(){
 
 /* L'heure d'un ramassage est arrivée (et le retard n'a pas encore commencé) */
 function aLHeure(d,r){if(d!==auj())return false;var h=heureRam(r);return !!h&&maintenantMin()>=minutesDe(h)}
+
+/* ---------- Contrôle de la ponte chez le commercial ----------
+   Le commercial voit seulement la ponte (pas la caisse ni les comptages) : normal, un peu bas, anormal. */
+function etatPonte(p){var m=n0(D.reglages.ponteMin);return !isFinite(p)?-1:p*100>=m?0:p*100>=m-10?1:2}
+var LIB_PONTE=[["ok","Normal"],["att","Un peu bas"],["alr","Anormal"]];
+function pillPonte(e,encours){return encours?'<span class="ctrl-p ctrl-cours">En cours</span>':e<0?'<span class="ctrl-p ctrl-cours">–</span>':'<span class="ctrl-p ctrl-'+LIB_PONTE[e][0]+'">'+LIB_PONTE[e][1]+'</span>'}
+function ponteBat(c,d){var e=effectif(c,d)||0;return e>0?oeufsJour(c,d)/e:NaN}
+function blocPonteCommercial(d){
+  var R=D.reglages,fait=ramFaits(d),total=NR(),fini=fait>=total||d<auj(),poules=effectifTotal(d)||n0(R.poulesRef),oe=oeufsJour(null,d),p=poules>0?oe/poules:NaN,e=etatPonte(p);
+  var h='<h2 class="sec-titre c-prod">Contrôle de la ponte</h2><div class="bloc ponte-com">';
+  h+='<div class="pc-haut"><div><b class="pc-v'+(!fini?" pc-neutre":e>0?" pc-"+LIB_PONTE[e][0]:"")+'">'+(isFinite(p)&&fait?Math.round(p*100)+" %":"–")+'</b><span>des poules ont pondu '+(fini?"aujourd'hui":"jusqu'ici")+'</span></div>'+pillPonte(e,!fini&&fait>0)+'</div>';
+  h+='<p class="aide" style="margin:6px 0 10px">'+nb(oe)+' œufs pour '+nb(poules)+' poules · '+fait+'/'+total+' ramassages. Normal : <b>'+R.ponteMin+' % et plus</b>.'+(fini?"":" Le verdict tombe après le dernier ramassage.")+'</p>';
+  h+='<div class="pc-bats">';R.comps.forEach(function(c){var pb=ponteBat(c.id,d),eb=etatPonte(pb);h+='<div class="pc-bat"><small>'+esc(c.nom)+'</small><b>'+(isFinite(pb)&&fait?Math.round(pb*100)+" %":"–")+'</b>'+(fini?pillPonte(eb):"")+'</div>'});h+='</div>';
+  h+='<table class="t ctrl-7" style="margin-top:10px"><thead><tr><th>Jour</th><th>Alv.</th><th>Ponte</th><th></th></tr></thead><tbody>';
+  for(var i=1;i<=7;i++){var j=decal(d,-i),o=oeufsJour(null,j),pj=effectifTotal(j)||n0(R.poulesRef),pp=pj>0&&o>0?o/pj:NaN;
+    h+='<tr><td>'+dateCourte(j)+'</td><td class="n">'+(o?nb(alvDe(o,cassesJour(null,j))):"–")+'</td><td class="n">'+(isFinite(pp)?Math.round(pp*100)+" %":"–")+'</td><td>'+pillPonte(etatPonte(pp))+'</td></tr>'}
+  h+='</tbody></table>';
+  if(fini&&e===2)h+='<div class="ctrl-pt ctrl-alr" style="margin-top:10px">'+IC.alerte+'<span>Ponte anormale : vérifiez qu\'aucun ramassage n\'a été oublié, et prévenez le technicien (aliment, eau, poules malades).</span></div>';
+  return h+'</div>';
+}
