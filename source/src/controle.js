@@ -205,7 +205,8 @@ function quand(d){return d===auj()?"aujourd'hui":d===decal(auj(),-1)?"hier":"le 
    jusqu'à ce que le DG ouvre le menu Dépenses sur ce téléphone. */
 var CLE_DEP_VU="fermeKonate.depVu";
 function depNonVues(){var vu=n0(lireLS(CLE_DEP_VU,0));return D.dep.filter(function(x){return n0(x.t)>vu}).length}
-function doitClignoter(k){return k==="jour"||(k==="dep"&&depNonVues()>0)}
+/* « Aujourd'hui » et « Dépenses » clignotent en permanence ; la pastille dit combien de dépenses sont nouvelles */
+function doitClignoter(k){return k==="jour"||k==="dep"}
 function majClignote(){
   if(V.ouvertP==="dep"&&depNonVues())ecrireLS(CLE_DEP_VU,Date.now());
   document.querySelectorAll(".grille-rub .rub").forEach(function(b){var k=b.getAttribute("data-v"),c=doitClignoter(k);b.classList.toggle("clignote",c);

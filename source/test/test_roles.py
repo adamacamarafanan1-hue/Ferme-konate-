@@ -196,7 +196,7 @@ with sync_playwright() as pw:
     ok(cl("dep"), "le menu Dépenses clignote : des dépenses pas encore vues")
     B.click('.grille-rub > button[data-v="dep"]'); B.wait_for_timeout(400)
     B.click('.grille-rub > button[data-v="dep"]'); B.wait_for_timeout(400)
-    ok(not cl("dep") and cl("jour"), "après ouverture, Dépenses s'arrête ; Aujourd'hui continue")
+    ok(cl("dep") and cl("jour") and B.locator('.grille-rub > button[data-v="dep"] .rub-nouv').count() == 0, "après ouverture, Dépenses clignote toujours, la pastille « nouvelles » disparaît")
     A.evaluate("V.F=null;ecrire(auj(),'dep',uid(),{date:auj(),cat:'Eau',montant:50000,note:'',imprevu:false})"); A.wait_for_timeout(1500)
     B.wait_for_timeout(3500)
     ok(cl("dep") and "1 nouvelle" in B.locator('.grille-rub > button[data-v="dep"]').inner_text(), "nouvelle dépense de Laye : Dépenses clignote avec « 1 nouvelle »")
