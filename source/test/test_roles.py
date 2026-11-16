@@ -194,6 +194,7 @@ with sync_playwright() as pw:
     print("   debug", vu_avant, B.evaluate("D.prod.filter(function(p){return p.date===auj()}).length"), A.evaluate("D.prod.filter(function(p){return p.date===auj()}).length"), len([r for r in base()["t"]["ramassages"] if r["jour"]==datetime.date.today().isoformat()]), B.evaluate("[ETAT.direct, Object.keys(STATE.rows.prod).length]"))
     ok(B.evaluate("D.prod.filter(function(p){return p.date===auj()}).length") == vu_avant + 1, "le ramassage de Laye apparaît chez le DG sans rien toucher")
     capture(B, "11_dg_accueil")
+    ok(B.locator(".pdg").count() == 1, "le DG voit le bandeau de la ponte en haut de son écran")
     cl = lambda k: "clignote" in (B.locator(f'.grille-rub > button[data-v="{k}"]').get_attribute("class") or "")
     ok(cl("jour"), "le menu Aujourd'hui clignote")
     ok(cl("dep"), "le menu Dépenses clignote : des dépenses pas encore vues")

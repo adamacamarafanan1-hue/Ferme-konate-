@@ -267,3 +267,18 @@ function blocPonteCommercial(d){
   if(fini&&e===2)h+='<div class="ctrl-pt ctrl-alr" style="margin-top:10px">'+IC.alerte+'<span>Ponte anormale : vérifiez qu\'aucun ramassage n\'a été oublié, et prévenez le technicien (aliment, eau, poules malades).</span></div>';
   return h+'</div>';
 }
+
+/* ---------- Bandeau de la ponte, bien visible chez le DG ---------- */
+function bandeauPonteDG(){
+  if(!estDG())return "";
+  var R=D.reglages,a=auj(),h=decal(a,-1),fait=ramFaits(a),fini=fait>=NR();
+  var pj=function(d){var o=oeufsJour(null,d),p=effectifTotal(d)||n0(R.poulesRef);return p>0&&o>0?o/p:NaN};
+  var pA=pj(a),pH=pj(h),eA=etatPonte(pA),eH=etatPonte(pH);
+  /* Verdict mis en avant : aujourd'hui si la journée est finie, sinon hier */
+  var dV=fini?a:h,pV=fini?pA:pH,eV=fini?eA:eH,cls=eV<0?"neutre":LIB_PONTE[eV][0];
+  var titre=eV<0?"Ponte : pas encore de chiffres":eV===0?"Ponte normale":eV===1?"Ponte un peu basse":"Ponte anormale";
+  var h1='<div class="pdg pdg-'+cls+'" role="status"><div class="pdg-g"><span class="pdg-ic">'+IC.oeuf+'</span><div><small>'+(fini?"Aujourd'hui":"Hier")+' · '+dComplete(dV)+'</small><b>'+titre+'</b></div><span class="pdg-v">'+(isFinite(pV)?Math.round(pV*100)+" %":"–")+'</span></div>';
+  h1+='<p>Normal : '+R.ponteMin+' % et plus.'+(eV===2?" <b>Vérifiez les ramassages, l'aliment, l'eau et les poules malades.</b>":eV===1?" À surveiller dans les prochains jours.":"")+'</p>';
+  if(!fini)h1+='<div class="pdg-auj">Aujourd\'hui, en cours : <b>'+(isFinite(pA)&&fait?Math.round(pA*100)+" %":"–")+'</b> · '+fait+'/'+NR()+' ramassages</div>';
+  return h1+'</div>';
+}

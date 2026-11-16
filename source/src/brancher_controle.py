@@ -4,7 +4,7 @@ def appliquer(rep):
     rep('var PAR_JOUR={jour:1,avant:1,journal:1,resume:1,dep:1};','var PAR_JOUR={jour:1,avant:1,journal:1,resume:1,dep:1,ctrl:1};')
     rep("  MENUS_DG.forEach(function(m){var k=m[0],v=valeurMenuDG(k,P)","  MENUS_DG.forEach(function(m){if(m[0]===\"ctrl\")return;var k=m[0],v=valeurMenuDG(k,P)")
     rep('  if(k==="dep")return contenuDepenses();\n','  if(k==="dep")return contenuDepenses();\n  if(k==="ctrl")return estDG()?contenuControle():"";\n')
-    rep("  h+=grilleDG(P);\n  return h;","  h+=carteControle()+grilleDG(P);\n  return h;")
+    rep("  h+=grilleDG(P);\n  return h;","  h+=bandeauPonteDG()+carteControle()+grilleDG(P);\n  return h;")
     rep('b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false")});pn.innerHTML=panneauMenu(P)}',
         'b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false")});var cc=document.querySelector(".ctrl-carte");if(cc)cc.classList.toggle("on",V.ouvertP==="ctrl");pn.innerHTML=panneauMenu(P)}')
     rep('+num("margeRam","Délai avant de signaler un retard (minutes)",R.margeRam);',
@@ -32,6 +32,18 @@ def appliquer(rep):
     rep("Vert = fait (nombre d\\'alvéoles). Rouge avec horloge = en retard.","Vert = fait (nombre d\\'alvéoles). Orange qui clignote = c\\'est l\\'heure. Rouge avec horloge = en retard.")
     rep("Touchez une case pour saisir ou corriger.</p></div>';","Touchez une case pour saisir ou corriger.</p></div>';\n  h+=blocPonteCommercial(d);")
 CSS = """
+.pdg{margin:12px 0 4px;border-radius:18px;padding:14px 16px;border:2px solid var(--vert);background:var(--vert-doux)}
+.pdg-g{display:flex;align-items:center;gap:12px}
+.pdg-g>div{flex:1;min-width:0}.pdg-g small{display:block;font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
+.pdg-g b{display:block;font-family:Archivo,sans-serif;font-size:21px;line-height:1.15;color:var(--vert)}
+.pdg-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--vert);flex:none}.pdg-ic svg{width:26px;height:26px}
+.pdg-v{font-family:Archivo,sans-serif;font-size:36px;font-weight:800;line-height:1;color:var(--vert)}
+.pdg p{margin:8px 0 0;font-size:15px;line-height:1.4}
+.pdg-auj{margin-top:10px;padding-top:9px;border-top:1px dashed color-mix(in srgb,var(--encre) 20%,transparent);font-size:14px;color:var(--gris)}
+.pdg-att{border-color:var(--c-prod);background:var(--laterite-doux)}.pdg-att .pdg-g b,.pdg-att .pdg-v,.pdg-att .pdg-ic{color:var(--c-prod)}
+.pdg-alr{border-color:var(--alerte);background:var(--alerte-doux);animation:pdg-alerte 1.6s ease-in-out infinite}.pdg-alr .pdg-g b,.pdg-alr .pdg-v,.pdg-alr .pdg-ic{color:var(--alerte)}
+@keyframes pdg-alerte{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--alerte) 45%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--alerte) 0%,transparent)}}
+.pdg-neutre{border-color:var(--trait);background:var(--surface)}.pdg-neutre .pdg-g b,.pdg-neutre .pdg-v,.pdg-neutre .pdg-ic{color:var(--gris)}
 .ctrl-p.ctrl-cours{background:var(--trait);color:var(--gris)}
 .ponte-com .pc-haut{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .ponte-com .pc-v{display:block;font-family:Archivo,sans-serif;font-size:34px;line-height:1;color:var(--vert)}
