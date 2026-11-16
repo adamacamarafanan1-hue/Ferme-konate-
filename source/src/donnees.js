@@ -122,6 +122,7 @@ function ecrire(date,l,id,rec){
   else if(l==="vaccins"&&rec._brut&&rec.fait)op={k:"rpc",f:"marquer_rappel_fait",args:{p_id:id}};
   else if(idBrut(l,id)){var r=Object.assign({},rec);delete r._brut;delete r.date;op={k:"maj",l:l,id:id,patch:versBase(l,r)}}
   else op={k:"ins",l:l,id:id,row:Object.assign(versBase(l,rec),{id:id,jour:date||auj(),saisi_tel:new Date().toISOString()})};
+  op.par=PROFIL&&PROFIL.id;op.quand=Date.now();
   OUT.push(op);sauverOut();construireD();vider();
   return true;
 }
@@ -166,24 +167,29 @@ function envoyer(op){
     PHOTOS_LOCALES[op.path]=op.petit||op.data;return null},function(e){throw e&&e.definitif?e:{reseau:true}});
   return Promise.resolve(null);
 }
-var envoiEnCours=false;
+var envoiEnCours=false,debutEnvoi=0;
+/* Un envoi qui ne répond pas en 25 s est considéré comme un problème de réseau : on réessaiera */
+function avecDelai(p){return Promise.race([p,new Promise(function(_,ko){setTimeout(function(){ko({reseau:true})},25000)})])}
+function mesEnvois(){return OUT.filter(function(o){return !o.par||!PROFIL||o.par===PROFIL.id})}
 function vider(){
+  if(envoiEnCours&&Date.now()-debutEnvoi>60000)envoiEnCours=false;
   if(!SB||envoiEnCours||!OUT.length||!PROFIL){majStatut();return}
-  envoiEnCours=true;
+  envoiEnCours=true;debutEnvoi=Date.now();
   (function suivant(){
-    if(!OUT.length){envoiEnCours=false;ETAT.horsLigne=false;majStatut();rafraichir();return}
-    var op=OUT[0];
-    envoyer(op).then(function(ligne){
-      OUT.shift();sauverOut();
+    var op=OUT.find(function(o){return !o.par||o.par===PROFIL.id});
+    if(!op){envoiEnCours=false;ETAT.horsLigne=false;majStatut();rafraichir();return}
+    debutEnvoi=Date.now();
+    avecDelai(envoyer(op)).then(function(ligne){
+      OUT.splice(OUT.indexOf(op),1);sauverOut();
       if(ligne&&op.l){STATE.rows[op.l][ligne.id]=ligne;if(ligne.annule)delete STATE.rows[op.l][ligne.id];enCache()}
       ETAT.horsLigne=false;suivant();
     },function(e){
       if(e&&e.definitif){
-        OUT.shift();
+        OUT.splice(OUT.indexOf(op),1);
         /* Si une photo est refusée, la saisie qui l'attend reste valable */
         sauverOut();ETAT.rejets.push(e.message);toast(e.message);construireD();suivant();return}
       envoiEnCours=false;
-      if(e&&e.session){SB.auth.refreshSession().then(function(r){if(r.error&&/refresh|banned|invalid|not found/i.test(r.error.message||""))perteSession();else setTimeout(vider,2000)},function(){ETAT.horsLigne=true;majStatut()})}
+      if(e&&e.session){SB.auth.refreshSession().then(function(r){if(r.error&&/refresh|banned|invalid|not found/i.test(r.error.message||""))perteSession();else setTimeout(vider,1500)},function(){ETAT.horsLigne=true;majStatut()})}
       else ETAT.horsLigne=true;
       majStatut();
     });
@@ -211,7 +217,10 @@ function recharger(){
     if(!p||p.bloque||p.retire){perteSession(p&&(p.bloque||p.retire)?"Accès bloqué par le DG.":"");return}
     if(p.code_a_changer!==PROFIL.code_a_changer||p.nom!==PROFIL.nom){PROFIL=Object.assign({},PROFIL,{code_a_changer:!!p.code_a_changer,nom:p.nom});ecrireLS(CLE_PROFIL,PROFIL)}
     construireD();rafraichir();vider();
-  },function(e){chargeEnCours=null;if(e&&e.session){SB.auth.refreshSession().then(function(r){if(r.error&&/refresh|banned|invalid|not found/i.test(r.error.message||""))perteSession()})}ETAT.horsLigne=true;majStatut()});
+  },function(e){chargeEnCours=null;
+    /* Session expirée (téléphone resté longtemps en veille) : on la renouvelle puis on recharge et on renvoie */
+    if(e&&e.session){SB.auth.refreshSession().then(function(r){if(r.error&&/refresh|banned|invalid|not found/i.test(r.error.message||""))perteSession();else setTimeout(function(){recharger();vider()},800)})}
+    else ETAT.horsLigne=true;majStatut()});
   return chargeEnCours;
 }
 /* Une table que le rôle ne peut pas lire renvoie simplement une liste vide */

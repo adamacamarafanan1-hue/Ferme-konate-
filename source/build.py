@@ -106,6 +106,8 @@ js=js[:a]+'''  if(type==="user"){if(!estDG())return toast("Seul le DG peut ajout
 rep("""  if(type==="ferme"){var R=D.reglages;""","""  if(type==="ferme"){if(!estDG())return;var R=D.reglages;""")
 rep("  h+=carteAction(actionTechnicien(d));\n","  h+=carteAction(actionTechnicien(d))+rappelsVaccins(d);\n")
 import sys as _s;_s.path.insert(0,'src');import brancher_controle as _bc;_bc.appliquer(rep)
+rep('    if(alv>stockAlv(F.date)&&!confirm("Le stock enregistré n\'est que de "+nb(stockAlv(F.date))+" alvéoles. Enregistrer quand même ? Le propriétaire verra un écart."))return;\n','')
+rep('  else if(a==="okRejet"){','  else if(a==="envoyerMaint"){envoiEnCours=false;ETAT.horsLigne=false;toast("Envoi…");vider();if(PROFIL)recharger()}\n  else if(a==="okRejet"){')
 # fin
 extra=open('src/acces.js',encoding='utf-8').read()+'\n'+open('src/telephone.js',encoding='utf-8').read()+'\n'+open('src/controle.js',encoding='utf-8').read()
 rep('construireD();rendre();demarrerPartage();',extra+'\nconstruireD();rendre();demarrerPartage();')

@@ -5,7 +5,7 @@ window.addEventListener("appinstalled",function(){INSTALL=null;toast("Applicatio
 function boutonInstaller(){return INSTALL?'<button class="btn sec" style="margin-top:16px" data-act="installer">'+IC.telephone+' Installer l\'application sur ce téléphone</button>':''}
 function installer(){if(!INSTALL)return;INSTALL.prompt();INSTALL.userChoice.then(function(){INSTALL=null;rendre()},function(){})}
 /* Mises à jour : le téléphone vérifie la nouvelle version à chaque ouverture et se recharge tout seul */
-var VERSION_APP="2026.11.16-17";
+var VERSION_APP="2026.11.16-18";
 if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){
   var avait=!!navigator.serviceWorker.controller,recharge=false;
   navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(reg){
@@ -49,6 +49,9 @@ function bandeauxTelephone(){
   if(u.role!=="gest"&&window.Notification&&Notification.permission==="default"&&!lireLS("fermeKonate.notifPlusTard",false))
     h+='<div class="bandeau b-action">'+IC.alerte+'<span>Recevoir un son et une notification à l\'heure de chaque ramassage et en cas de retard.</span><span class="b-btns"><button class="btn petit" data-act="notif">Activer</button><button class="btn sec petit" data-act="notifNon">Plus tard</button></span></div>';
   if(INSTALL)h+='<div class="bandeau b-action">'+IC.telephone+'<span>Installez l\'application : elle s\'ouvre comme les autres, même sans réseau.</span><span class="b-btns"><button class="btn petit" data-act="installer">Installer</button></span></div>';
+  var M=typeof mesEnvois==="function"?mesEnvois().filter(function(o){return o.k!=="up"}):[];
+  if(M.length){var nv=M.filter(function(o){return o.l==="ventes"}).length;
+    h+='<div class="bandeau b-refus">'+IC.alerte+'<span><b>'+M.length+' saisie'+(M.length>1?"s":"")+' pas encore envoyée'+(M.length>1?"s":"")+'</b>'+(nv?' (dont '+nv+' vente'+(nv>1?"s":"")+')':'')+'. Le DG ne les voit pas encore. Gardez l\'application ouverte avec du réseau.</span><span class="b-btns"><button class="btn petit" data-act="envoyerMaint">Envoyer maintenant</button></span></div>'}
   if(ETAT.rejets.length)h+='<div class="bandeau b-refus">'+IC.alerte+'<span><b>Saisie non acceptée.</b> '+esc(ETAT.rejets[ETAT.rejets.length-1])+'</span><span class="b-btns"><button class="btn sec petit" data-act="okRejet">J\'ai compris</button></span></div>';
   return h;
 }
