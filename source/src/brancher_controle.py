@@ -25,7 +25,17 @@ def appliquer(rep):
     rep('inventaire:fInventaire,reception:fReception,','inventaire:fInventaire,reception:fReception,ouverture:fOuverture,')
     rep('  if(F.type==="inventaire"||F.type==="reception")return validerControle(F);','  if(F.type==="inventaire"||F.type==="reception"||F.type==="ouverture")return validerControle(F);')
     rep('  else if(a==="ouvrirInv"){','  else if(a==="ouvrirOuv"){if(!estDG())return;var Ro=D.reglages;V.F={type:"ouverture",alv:"",sacs:"",n:"",date:auj()};rendre()}\n  else if(a==="ouvrirInv"){')
+    rep('RAMS.forEach(function(r){var f=ramSaisi(c.id,d,r),rt2=!f&&ramEnRetard(c.id,d,r);\n      h+=\'<button class="gr-c \'+(f?"fait":rt2?"retard":"")+\'"',
+        'RAMS.forEach(function(r){var f=ramSaisi(c.id,d,r),rt2=!f&&ramEnRetard(c.id,d,r),lh=!f&&!rt2&&aLHeure(d,r);\n      h+=\'<button class="gr-c \'+(f?"fait":rt2?"retard":lh?"a-lheure":"")+\'"')
+    rep(":rt2?IC.horloge:'<small>'+(heureRamFr(r)||\"à faire\")+'</small>')+'</button>'",
+        ":rt2?IC.horloge:lh?'<small class=\"lh-h\">'+heureRamFr(r)+'</small><small class=\"lh-t\">C\\'est l\\'heure</small>':'<small>'+(heureRamFr(r)||\"à faire\")+'</small>')+'</button>'")
+    rep("Vert = fait (nombre d\\'alvéoles). Rouge avec horloge = en retard.","Vert = fait (nombre d\\'alvéoles). Orange qui clignote = c\\'est l\\'heure. Rouge avec horloge = en retard.")
 CSS = """
+.gr-c.a-lheure{border:2px solid var(--c-prod);background:var(--laterite-doux);color:var(--c-prod);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;animation:lh-fond 1.2s ease-in-out infinite}
+.gr-c.a-lheure .lh-h{font-family:Archivo,sans-serif;font-size:16px;line-height:1.1;font-weight:800;animation:lh-txt 1.2s ease-in-out infinite}
+.gr-c.a-lheure .lh-t{font-size:9px;line-height:1.1;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+@keyframes lh-fond{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c-prod) 50%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--c-prod) 0%,transparent);background:color-mix(in srgb,var(--c-prod) 22%,var(--surface))}}
+@keyframes lh-txt{50%{opacity:.35}}
 .accueil-dg{display:flex;align-items:center;gap:14px;margin:-34px 0 12px;position:relative}
 .accueil-dg img{width:84px;height:84px;border-radius:50%;object-fit:cover;border:4px solid var(--fond);box-shadow:0 4px 14px rgba(0,0,0,.18);flex:none;background:var(--laterite-doux)}
 .accueil-dg small{display:block;color:var(--gris);font-size:13px;margin-top:22px}

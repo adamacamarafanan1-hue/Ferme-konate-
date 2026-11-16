@@ -244,3 +244,6 @@ function blocOuverture(){
   if(!R.ouvDate)return '<div class="ctrl-pt ctrl-alr">'+IC.alerte+'<span><b>Inventaire d\'ouverture à faire.</b> Sans lui, les stocks partent de zéro et les alertes de stock et de caisse sont fausses. <button class="btn petit" style="margin-top:8px" data-act="ouvrirOuv">Faire l\'inventaire d\'ouverture</button></span></div>';
   return '<p class="aide">Inventaire d\'ouverture du '+dateCourte(R.ouvDate)+' : '+nb(R.ouvAlv)+' alv., '+nb(R.ouvSacs)+' sacs, '+gnf(R.ouvCaisse)+'. <button class="lien" data-act="ouvrirOuv">Corriger</button></p>';
 }
+
+/* L'heure d'un ramassage est arrivée (et le retard n'a pas encore commencé) */
+function aLHeure(d,r){if(d!==auj())return false;var h=heureRam(r);return !!h&&maintenantMin()>=minutesDe(h)}
