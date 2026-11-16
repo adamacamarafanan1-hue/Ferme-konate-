@@ -21,10 +21,15 @@ def appliquer(rep):
     rep('  V.ouvertP=V.ouvertP===k?null:k;V.jourOuvert=null;V.cycleOuvert=null;','  V.ouvertP=V.ouvertP===k?null:k;V.jourOuvert=null;V.cycleOuvert=null;if(V.ouvertP==="dep")ecrireLS(CLE_DEP_VU,Date.now());setTimeout(majClignote,0);')
 CSS = """
 .rub{position:relative}
-.rub.clignote{animation:rub-clig 1.3s ease-in-out infinite}
-@keyframes rub-clig{0%,100%{box-shadow:0 0 0 0 transparent;border-color:var(--trait)}50%{box-shadow:0 0 0 4px var(--c,var(--laterite));border-color:var(--c,var(--laterite))}}
-@media (prefers-reduced-motion:reduce){.rub.clignote{animation:none;box-shadow:0 0 0 3px var(--c,var(--laterite))}}
-.rub-nouv{position:absolute;top:-8px;right:-4px;background:var(--alerte);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.rub.clignote{border-color:color-mix(in srgb,var(--m) 70%,transparent)}
+.rub.clignote::after{content:"";position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--m);animation:rub-onde 2.2s cubic-bezier(.2,.6,.4,1) infinite}
+.rub.clignote.a-nouv::after{display:none}
+.rub.on.clignote::after{background:#fff;--m:#ffffff}
+.grille-rub .rub.alerte{margin:0}
+@keyframes rub-onde{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--m) 60%,transparent)}75%,100%{box-shadow:0 0 0 8px color-mix(in srgb,var(--m) 0%,transparent)}}
+.rub-nouv{position:absolute;top:-9px;right:-3px;background:var(--alerte);color:#fff;font-size:11px;font-weight:800;letter-spacing:.01em;padding:2px 8px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.18);animation:rub-onde-r 2.2s cubic-bezier(.2,.6,.4,1) infinite}
+@keyframes rub-onde-r{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--alerte) 50%,transparent)}75%,100%{box-shadow:0 0 0 7px color-mix(in srgb,var(--alerte) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.rub.clignote::after,.rub-nouv{animation:none}}
 .ctrl-invs{display:grid;gap:8px;margin:6px 0}
 .ctrl-inv{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;border-radius:14px;border:1.5px solid var(--trait);background:var(--surface);color:var(--encre);font:inherit;cursor:pointer}
 .ctrl-inv .x{flex:1;min-width:0}.ctrl-inv b{display:block;font-size:16px}.ctrl-inv small{display:block;color:var(--gris);font-size:13px}

@@ -209,6 +209,6 @@ function doitClignoter(k){return k==="jour"||(k==="dep"&&depNonVues()>0)}
 function majClignote(){
   if(V.ouvertP==="dep"&&depNonVues())ecrireLS(CLE_DEP_VU,Date.now());
   document.querySelectorAll(".grille-rub .rub").forEach(function(b){var k=b.getAttribute("data-v"),c=doitClignoter(k);b.classList.toggle("clignote",c);
-    if(k==="dep"){var n=depNonVues(),s=b.querySelector(".rub-nouv");if(n&&!s){s=document.createElement("span");s.className="rub-nouv";b.appendChild(s)}if(s){if(n)s.textContent=n+" nouvelle"+(n>1?"s":"");else s.remove()}}});
+    if(k==="dep"){var n=depNonVues(),s=b.querySelector(".rub-nouv");if(n&&!s){s=document.createElement("span");s.className="rub-nouv";b.appendChild(s)}if(s){if(n)s.textContent=n+" nouvelle"+(n>1?"s":"");else s.remove()}b.classList.toggle("a-nouv",!!n)}});
 }
 setInterval(majClignote,3000);
