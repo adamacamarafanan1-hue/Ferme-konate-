@@ -1,7 +1,7 @@
 /* Ferme Konaté — fonctionnement sans réseau : l'application elle-même est gardée sur le téléphone.
    Les données passent par la base (jamais mises en cache ici). */
-var VERSION = "ferme-v11";
-var COQUILLE = ["./", "index.html", "app.js", "supabase.js", "ferme.jpg", "manifest.webmanifest", "icone-192.png", "icone-512.png", "icone-badge.png"];
+var VERSION = "ferme-v12";
+var COQUILLE = ["./", "index.html", "app.js", "supabase.js", "ferme.jpg", "proprio.jpg", "manifest.webmanifest", "icone-192.png", "icone-512.png", "icone-badge.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(COQUILLE); }).then(function () { return self.skipWaiting(); }));
 });

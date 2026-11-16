@@ -15,7 +15,7 @@ function vueConnexion(){
         :'<p class="aide" style="text-align:center;margin-top:24px">Connexion au serveur de la ferme…</p><button class="btn sec" style="margin-top:14px" data-act="reessayer">Réessayer</button>';
       return h+boutonInstaller()+'</div>';
     }
-    h+='<h2 style="margin-top:6px">Qui êtes-vous ?</h2><div class="users">';
+    h+=carteProprio()+'<h2 style="margin-top:6px">Qui êtes-vous ?</h2><div class="users">';
     eq.forEach(function(x){h+='<button data-act="choixUser" data-v="'+x.id+'"><span class="avatar">'+esc(initiales(x.nom))+'</span><span><b>'+esc(x.nom)+'</b><small>'+(x.role==="dg"?"Directeur général":ROLES[ROLE_APP[x.role]])+'</small></span></button>'});
     return h+'</div><p class="aide" style="text-align:center">Votre nom n\'est pas là ? Seul le DG peut vous ajouter.</p>'+boutonInstaller()+'<p class="version">Version '+VERSION_APP+'</p></div>';
   }
@@ -79,4 +79,23 @@ function rappelsVaccins(d){
   if(!L.length)return "";
   return L.map(function(x){var v=x.v,ret=x.j<0;
     return '<div class="alerte '+(ret?"":"info")+'"><b>'+(ret?"Rappel de vaccin en retard":"Rappel de vaccin "+(x.j===0?"aujourd'hui":"dans "+x.j+" jour"+(x.j>1?"s":"")))+' :</b> '+esc(v.vaccin)+' ('+esc(comp(v.comp).court)+'), prévu le '+dateCourte(v.rappel)+'. <button class="btn vert petit" style="margin-top:8px" data-act="rappelFait" data-id="'+v.id+'" data-d="'+v.date+'">Rappel fait</button></div>'}).join("");
+}
+
+/* ---------- Accueil : le propriétaire et la devise du jour ---------- */
+var DEVISES=[
+  "Chaque œuf compte, chaque franc compte.",
+  "Ce qui est noté est maîtrisé.",
+  "Une ferme bien gérée se lit dans ses chiffres.",
+  "La rigueur d'aujourd'hui fait la récolte de demain.",
+  "Compter juste, vendre juste, verser juste.",
+  "La confiance se construit chaque jour, saisie après saisie.",
+  "Des poules bien soignées font une ferme prospère.",
+  "L'heure du ramassage se respecte, comme la parole donnée.",
+  "Un reçu pour chaque dépense, une trace pour chaque franc.",
+  "Ensemble, faisons grandir la ferme."
+];
+function deviseDuJour(){var n=Math.floor(Date.parse(auj()+"T12:00:00Z")/864e5);return DEVISES[n%DEVISES.length]}
+function carteProprio(){
+  return '<div class="accueil-dg"><img src="proprio.jpg" alt="Mohamed Konaté, propriétaire" width="84" height="84"><div><small>Bienvenue à la ferme de</small><b>Mohamed Konaté</b><span>Propriétaire</span></div></div>'+
+    '<blockquote class="devise"><span class="guill">«</span>'+esc(deviseDuJour())+'<span class="guill">»</span><cite>La devise du jour</cite></blockquote>';
 }
