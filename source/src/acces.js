@@ -17,7 +17,7 @@ function vueConnexion(){
     }
     h+='<h2 style="margin-top:6px">Qui êtes-vous ?</h2><div class="users">';
     eq.forEach(function(x){h+='<button data-act="choixUser" data-v="'+x.id+'"><span class="avatar">'+esc(initiales(x.nom))+'</span><span><b>'+esc(x.nom)+'</b><small>'+(x.role==="dg"?"Directeur général":ROLES[ROLE_APP[x.role]])+'</small></span></button>'});
-    return h+'</div><p class="aide" style="text-align:center">Votre nom n\'est pas là ? Seul le DG peut vous ajouter.</p>'+boutonInstaller()+'</div>';
+    return h+'</div><p class="aide" style="text-align:center">Votre nom n\'est pas là ? Seul le DG peut vous ajouter.</p>'+boutonInstaller()+'<p class="version">Version '+VERSION_APP+'</p></div>';
   }
   h+='<h2 style="margin-top:6px;text-align:center">Bonjour '+esc(prenom(u.nom))+'</h2><p class="aide" style="text-align:center">Tapez votre code secret (6 chiffres)</p>'+points(V.pin.length,6);
   h+='<p class="pin-msg" role="status">'+(V.attente?"Vérification…":V.erreurPin?'<span class="rouge">'+esc(V.erreurPin)+'</span>':"&nbsp;")+'</p>';

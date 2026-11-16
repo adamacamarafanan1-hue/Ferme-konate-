@@ -4,7 +4,16 @@ window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();INS
 window.addEventListener("appinstalled",function(){INSTALL=null;toast("Application installée");majBandeaux()});
 function boutonInstaller(){return INSTALL?'<button class="btn sec" style="margin-top:16px" data-act="installer">'+IC.telephone+' Installer l\'application sur ce téléphone</button>':''}
 function installer(){if(!INSTALL)return;INSTALL.prompt();INSTALL.userChoice.then(function(){INSTALL=null;rendre()},function(){})}
-if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+/* Mises à jour : le téléphone vérifie la nouvelle version à chaque ouverture et se recharge tout seul */
+var VERSION_APP="2026.11.16-9";
+if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){
+  var avait=!!navigator.serviceWorker.controller,recharge=false;
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(reg){
+    reg.update().catch(function(){});
+    document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")reg.update().catch(function(){})});
+  }).catch(function(){});
+  navigator.serviceWorker.addEventListener("controllerchange",function(){if(avait&&!recharge&&!V.F){recharge=true;location.reload()}});
+})}
 
 /* Son : il faut un premier toucher de l'écran pour que le téléphone accepte de jouer un son */
 var AUDIO=null;
