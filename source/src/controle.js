@@ -260,17 +260,17 @@ function ponteBat(c,d){var e=effectif(c,d)||0;return e>0?oeufsJour(c,d)/e:NaN}
    Bon (vert) : ponteMin % et plus · Moyen (orange) : de ponteMoyen à ponteMin · Pas bon (rouge) : en dessous.
    Après chaque ramassage, l'application estime la ponte de la journée : œufs déjà ramassés ÷ la part
    habituellement ramassée à cette heure (calculée sur les 14 derniers jours complets de la ferme). */
-var PARTS_DEFAUT=[0.40,0.70,0.85,1];
+var PARTS_DEFAUT=[0.60,0.85,0.95,1];
 function partsRam(){
   var cs=D.reglages.comps,tot=[0,0,0,0],n=0;
   for(var i=1;i<=14;i++){var j=decal(auj(),-i);if(ramFaits(j)<NR())continue;var o=oeufsJour(null,j);if(!o)continue;
     var c=0;RAMS.forEach(function(r){c+=somme(cs,function(x){return oeufsJour(x.id,j,r)});tot[r-1]+=c/o});n++}
-  if(n<3)return PARTS_DEFAUT;return tot.map(function(t,k){return k===3?1:Math.max(0.05,t/n)});
+  if(n<1)return PARTS_DEFAUT;return tot.map(function(t,k){return k===3?1:Math.max(0.05,t/n)});
 }
 function tourFait(d,r){return D.reglages.comps.every(function(c){return ramSaisi(c.id,d,r)})}
 function suiviRam(d){
   var P=partsRam(),poules=effectifTotal(d)||n0(D.reglages.poulesRef),cum=0,out=[];
-  RAMS.forEach(function(r){cum+=oeufsJour(null,d,r);var ok=tourFait(d,r),proj=ok&&poules>0?cum/poules/P[r-1]:NaN;
+  RAMS.forEach(function(r){cum+=oeufsJour(null,d,r);var ok=tourFait(d,r),proj=ok&&poules>0?Math.min(1,cum/poules/P[r-1]):NaN;
     out.push({r:r,fait:ok,heure:heureRamFr(r),cumul:cum,pont:poules>0?cum/poules:NaN,proj:proj,etat:ok?etatPonte(proj):-1})});
   return out;
 }
