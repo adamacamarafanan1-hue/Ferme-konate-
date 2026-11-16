@@ -24,7 +24,7 @@ def appliquer(rep):
     rep('function stockAliment(d){return somme(','function stockAliment(d){return n0(D.reglages.ouvSacs)+somme(')
     rep('inventaire:fInventaire,reception:fReception,','inventaire:fInventaire,reception:fReception,ouverture:fOuverture,')
     rep('  if(F.type==="inventaire"||F.type==="reception")return validerControle(F);','  if(F.type==="inventaire"||F.type==="reception"||F.type==="ouverture")return validerControle(F);')
-    rep('  else if(a==="ouvrirInv"){','  else if(a==="ouvrirOuv"){if(!estDG())return;var Ro=D.reglages;V.F={type:"ouverture",alv:Ro.ouvDate?Ro.ouvAlv:"",sacs:Ro.ouvDate?Ro.ouvSacs:"",n:Ro.ouvDate?Ro.ouvCaisse:"",date:auj()};rendre()}\n  else if(a==="ouvrirInv"){')
+    rep('  else if(a==="ouvrirInv"){','  else if(a==="ouvrirOuv"){if(!estDG())return;var Ro=D.reglages;V.F={type:"ouverture",alv:"",sacs:"",n:"",date:auj()};rendre()}\n  else if(a==="ouvrirInv"){')
 CSS = """
 .rub{position:relative}
 .rub.clignote{border-color:var(--m);animation:rub-bord 1.6s ease-in-out infinite}

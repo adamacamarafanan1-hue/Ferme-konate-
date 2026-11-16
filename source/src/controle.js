@@ -122,10 +122,19 @@ function validerControle(F){
   if(F.type==="ouverture"){
     if(!estDG())return toast("Réservé au DG");
     if(String(F.sacs)===""||String(F.n)==="")return toast("Indiquez les sacs et l'argent, même 0");
-    var Ro=D.reglages;Ro.ouvDate=Ro.ouvDate||auj();Ro.ouvAlv=Math.max(0,Math.round(n0(F.alv)));Ro.ouvSacs=Math.max(0,n0(F.sacs));Ro.ouvCaisse=Math.max(0,Math.round(n0(F.n)));
-    /* Les alvéoles déjà saisies depuis le démarrage sont déjà comptées : on garde seulement ce qui existait avant */
+    /* Le DG compte ce qui est là MAINTENANT ; l'application retire ce qui a été saisi depuis le démarrage
+       pour retrouver ce qui existait avant le premier jour. */
+    var Ro=D.reglages;Ro.ouvAlv=0;Ro.ouvSacs=0;Ro.ouvCaisse=0;
+    var sansA=Math.floor(stockOeufs(auj())/Ro.oeufsAlv),sansS=stockAliment(auj()),sansC=caisseTheorique();
+    Ro.ouvDate=Ro.ouvDate||auj();Ro.ouvAlv=Math.max(0,Math.round(n0(F.alv)-sansA));Ro.ouvSacs=Math.max(0,n0(F.sacs)-sansS);Ro.ouvCaisse=Math.max(0,Math.round(n0(F.n)-sansC));
+
+    var invOuv=[["alveoles",n0(F.alv),Ro.ouvAlv+sansA],["aliment",n0(F.sacs),Ro.ouvSacs+sansS],["caisse",n0(F.n),Ro.ouvCaisse+sansC]];
     ecrireConfig();
-    V.F={type:"ok",msg:"Inventaire d'ouverture enregistré : "+nb(Ro.ouvAlv)+" alvéoles, "+nb(Ro.ouvSacs)+" sacs, "+gnf(Ro.ouvCaisse)+" chez le commercial.<br>Les contrôles partent maintenant de ces chiffres."};vibrer();rendre();return;
+    /* Si on a compté MOINS que ce qui a été saisi depuis le démarrage, le départ reste à 0 et l'écart est gardé comme un comptage */
+    invOuv.forEach(function(x){
+      ecrire(auj(),"inv",uid(),{date:auj(),type:x[0],compte:x[1],theorique:Math.max(x[2],0),note:"Inventaire d'ouverture"})});
+    Ro=D.reglages;
+    V.F={type:"ok",msg:"Inventaire enregistré.<br>Il y avait au démarrage : "+nb(Ro.ouvAlv)+" alvéoles, "+nb(Ro.ouvSacs)+" sacs, "+gnf(Ro.ouvCaisse)+" chez le commercial.<br>Les contrôles partent maintenant de là."};vibrer();rendre();return;
   }
   if(F.type==="reception"){
     var a=D.alimIn.find(function(x){return x.id===F.achat});if(!a)return toast("Achat introuvable");
@@ -226,9 +235,9 @@ setInterval(majClignote,3000);
 /* ---------- Inventaire d'ouverture (une fois, au démarrage) ---------- */
 TITRES.ouverture="Inventaire d'ouverture";
 function fOuverture(){
-  return '<div class="resume">Ce qui existait <b>avant le premier jour</b> d\'utilisation de l\'application. Comptez-le une fois : tous les contrôles partent de là.</div>'+
-    compteur("alv","Alvéoles en stock avant le démarrage",1,[-10,10])+compteur("sacs","Sacs d'aliment au magasin avant le démarrage",1,[-10,10],true)+champMontant("n","Argent qui était chez le commercial (GNF)")+
-    '<p class="aide">Si vous ne savez pas, mettez 0 et corrigez au premier vrai comptage.</p>';
+  return '<div class="resume">Comptez <b>maintenant</b> ce qui est vraiment là. L\'application retire elle-même ce qui a été saisi depuis le démarrage, pour retrouver le point de départ. À faire une seule fois.</div>'+
+    compteur("alv","Alvéoles en stock maintenant",1,[-10,10])+compteur("sacs","Sacs d'aliment au magasin maintenant",1,[-10,10],true)+champMontant("n","Argent que le commercial a en main maintenant (GNF)")+
+    '<p class="aide">Faites compter l\'argent devant vous. Ensuite, les comptages de chaque semaine montreront les écarts.</p>';
 }
 function blocOuverture(){
   var R=D.reglages;

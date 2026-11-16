@@ -278,8 +278,9 @@ with sync_playwright() as pw:
     B.click('[data-act="ouvrirOuv"]'); B.wait_for_timeout(300)
     B.fill("#cpt_alv", "40"); B.fill("#cpt_sacs", "12"); B.fill("#m_n", "500000"); valider(B); fermer_ok(B)
     rg = base()["reglages"][0]
-    ok(rg.get("ouv_alveoles") == 40 and rg.get("ouv_sacs") == 12 and rg.get("ouv_caisse") == 500000 and rg.get("ouv_date"), "inventaire d'ouverture enregistré (40 alv., 12 sacs, 500 000)")
-    ok(B.evaluate("stockAliment(auj())") == B.evaluate("12+somme(D.alimIn,function(a){return a.sacs})-somme(D.alimOut,function(a){return a.sacs})"), "le stock d'aliment part de l'ouverture")
+    ok(rg.get("ouv_date") and rg.get("ouv_caisse") is not None, "inventaire d'ouverture enregistré")
+    ok(B.evaluate("stockAliment(auj())") == 12, "les sacs attendus = les 12 sacs comptés")
+    ok(B.evaluate("D.inv.filter(function(x){return x.note===\"Inventaire d'ouverture\"}).length") == 3, "les 3 comptages d'ouverture sont gardés (les écarts restent visibles)")
     B.click('button.ctrl-carte'); B.wait_for_timeout(300)
     A.click('button[data-act="ouvrir"][data-v="achat"]') if A.locator('button[data-act="ouvrir"][data-v="achat"]').count() else A.evaluate("ouvrir('achat')")
     A.wait_for_timeout(300); A.fill("#cpt_sacs", "10"); A.fill("#m_montant", "2900000"); valider(A); fermer_ok(A)
@@ -295,7 +296,7 @@ with sync_playwright() as pw:
     C.click('[data-act="ouvrirInv"][data-v="alveoles"]'); C.wait_for_timeout(300)
     ok("attendu" not in C.locator("#feuille").inner_text().lower(), "le technicien compte sans voir le chiffre attendu")
     C.fill("#cpt_n", "150"); valider(C); fermer_ok(C)
-    inv = base()["t"]["inventaires"]
+    inv = [x for x in base()["t"]["inventaires"] if not x.get("note")]
     ok(len(inv) == 1 and inv[0]["compte"] == 150 and inv[0]["theorique"] is not None, f"comptage des alvéoles enregistré avec l'attendu ({inv[0]['theorique'] if inv else '?'})")
     ok(A.evaluate("D.inv.length") == 0, "le commercial ne voit pas les comptages")
     ok(C.locator('[data-act="ouvrirInv"][data-v="caisse"]').count() == 0, "le technicien ne peut pas compter la caisse")
