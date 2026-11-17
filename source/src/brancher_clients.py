@@ -22,7 +22,17 @@ def appliquer(rep):
     rep('inventaire:fInventaire,','inventaire:fInventaire,annulation:fAnnulation,')
     rep('  if(F.type==="inventaire"||F.type==="reception"||F.type==="ouverture")return validerControle(F);','  if(F.type==="annulation")return validerAnnulation(F);\n  if(F.type==="inventaire"||F.type==="reception"||F.type==="ouverture")return validerControle(F);')
     rep('  else if(a==="okRejet"){','  else if(a==="annulerDep"){var xd=D.dep.find(function(x){return x.id===b.getAttribute("data-id")});if(!xd)return;V.F={type:"annulation",dep:xd.id,motif:"",date:auj()};rendre()}\n  else if(a==="triClient"){V.triClient=b.getAttribute("data-v");majContenuOuvert()}\n  else if(a==="okRejet"){')
+    # Onglet « Annuler » : menu chez le DG, bouton chez le commercial
+    rep('  ["clients","Clients","clients","arg","Contacts et crédits"],','  ["clients","Clients","clients","arg","Contacts et crédits"],\n  ["annul","Annuler","note","arg","Dépenses annulées et pourquoi"],')
+    rep('  if(k==="clients"){var LC=listeClients();','  if(k==="annul"){var NA=(D.depAnnulees||[]).length;return [nb(NA)+" annulée"+(NA>1?"s":""),"annuler une dépense"]}\n  if(k==="clients"){var LC=listeClients();')
+    rep('  if(k==="clients"){var LC2=listeClients();','  if(k==="annul"){var NA2=(D.depAnnulees||[]).length;return [nb(NA2),NA2>1?"annulées":"annulée"]}\n  if(k==="clients"){var LC2=listeClients();')
+    rep('  if(k==="clients")return contenuClients();\n','  if(k==="clients")return contenuClients();\n  if(k==="annul")return contenuAnnuler();\n')
+    rep('dRam:dRam,','dRam:dRam,dAnnuler:dAnnuler,')
+    rep(""" Dépense</button></div>';""",""" Dépense</button></div><button class="btn sec annuler-btn" data-act="ouvrir" data-v="dAnnuler">'+IC.note+' Annuler une dépense</button>';""")
 CSS = """
+.annuler-btn{margin-top:10px;width:100%}
+.annulees li.nouv{background:var(--alerte-doux);border-radius:12px}
+.annulees small{display:block}
 .grille-rub>.rub:last-child:nth-child(3n+1){grid-column:1/-1}
 .liste-clients{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
 .liste-clients li{border:1px solid var(--trait);border-radius:14px;padding:10px 12px;background:var(--surface)}

@@ -94,3 +94,29 @@ document.addEventListener("input",function(e){var t=e.target;if(!t)return;
   if(t.id==="rechClient"){V.rechClient=t.value;var z=document.getElementById("lc-zone");if(z)z.innerHTML=listeClientsHtml()}
   if(t.id==="vtel"&&V.F)V.F.telTouche=true});
 document.addEventListener("change",function(e){var t=e.target;if(t&&t.id==="vc"&&V.F&&!V.F.telTouche){var n=telConnu(t.value),i=document.getElementById("vtel");if(i&&n){i.value=n;V.F.tel=n}}});
+
+/* ================= Onglet « Annuler » =================
+   Ce qu'on peut annuler, puis tout ce qui a déjà été annulé : quand, par qui, pourquoi. */
+var CLE_ANN_VU="fermeKonate.annVu";
+function annulNonVues(){var vu=n0(lireLS(CLE_ANN_VU,0));return (D.depAnnulees||[]).filter(function(x){return Date.parse(x.annuleLe||"")>vu}).length}
+TITRES.dAnnuler="Annuler une dépense";DET.dAnnuler=["arg","note"];
+function contenuAnnuler(){
+  var u=moi();if(!u)return "";var dg=u.role==="proprio",deb=decal(auj(),-30),h='';
+  var A=D.dep.filter(function(x){return peutAnnulerDep(x)&&(dg?x.date>=deb:true)}).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.t||0)-(a.t||0)});
+  var Z=(D.depAnnulees||[]).filter(function(x){return dg||x.parId===u.id});
+  h+=kpis([[nb(A.length),"à annuler possible"],[nb(Z.length),"annulée"+(Z.length>1?"s":""),Z.length>0],[nb(somme(Z,function(x){return x.montant})),"GNF annulés"]]);
+  h+='<h3 class="sous-t">Déjà annulées</h3>';
+  if(!Z.length)h+='<div class="vide">Aucune dépense annulée.</div>';
+  else{
+  var vu=n0(lireLS(CLE_ANN_VU,0));
+  h+='<ul class="hist annulees">';Z.forEach(function(x){var nv=dg&&Date.parse(x.annuleLe||"")>vu;
+    h+='<li class="'+(nv?"nouv":"")+'">'+icone("note","arg")+'<span class="x"><b><s>'+esc(x.cat)+' · '+gnf(x.montant)+'</s>'+(nv?' <span class="ctrl-p ctrl-alr">nouveau</span>':'')+'</b>'+
+      '<small><b class="rouge">Annulée</b> '+(x.annuleLe?quand(x.annuleLe.slice(0,10))+' à '+heure(Date.parse(x.annuleLe)):"")+(x.annulePar?' par '+esc(x.annulePar):'')+'</small>'+
+      '<small>Motif : <b>« '+esc(x.motif||"non indiqué")+' »</b></small><small>Dépense saisie '+quand(x.date)+' par '+esc(x.par||"")+(x.note?' · '+esc(x.note):'')+'</small></span></li>'});
+  h+='</ul>'}
+  h+='<h3 class="sous-t">Ce que vous pouvez annuler</h3><p class="aide" style="margin-top:0">'+(dg?"Toutes les dépenses des 30 derniers jours.":"Vos dépenses d'aujourd'hui. Après minuit, seul le DG peut annuler.")+'</p>';
+  if(!A.length)h+='<div class="vide">Rien à annuler.</div>';
+  else{h+='<ul class="hist">';A.forEach(function(x){h+='<li>'+icone(((CATS.find(function(c){return c[0]===x.cat})||["","note"])[1]),"arg")+'<span class="x"><b>'+esc(x.cat)+' · '+gnf(x.montant)+'</b><small>'+quand(x.date)+' à '+heure(x.t)+' · '+esc(x.par||"")+(x.note?' · '+esc(x.note):'')+'</small></span><button class="btn dang petit" data-act="annulerDep" data-id="'+x.id+'">Annuler</button></li>'});h+='</ul>'}
+  return h;
+}
+function dAnnuler(){return contenuAnnuler()}

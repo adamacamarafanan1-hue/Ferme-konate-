@@ -224,11 +224,14 @@ function quand(d){return d===auj()?"aujourd'hui":d===decal(auj(),-1)?"hier":"le 
 var CLE_DEP_VU="fermeKonate.depVu";
 function depNonVues(){var vu=n0(lireLS(CLE_DEP_VU,0));return D.dep.filter(function(x){return n0(x.t)>vu}).length}
 /* « Aujourd'hui » et « Dépenses » clignotent en permanence ; la pastille dit combien de dépenses sont nouvelles */
-function doitClignoter(k){return k==="jour"||k==="dep"}
+function doitClignoter(k){return k==="jour"||k==="dep"||(k==="annul"&&typeof annulNonVues==="function"&&annulNonVues()>0)}
+/* Pastilles « nouvelles » : dépenses et annulations pas encore vues par le DG sur ce téléphone */
+function nouveautes(k){return k==="dep"?depNonVues():k==="annul"&&typeof annulNonVues==="function"?annulNonVues():0}
 function majClignote(){
   if(V.ouvertP==="dep"&&depNonVues())ecrireLS(CLE_DEP_VU,Date.now());
+  if(V.ouvertP==="annul"&&typeof annulNonVues==="function"&&annulNonVues())ecrireLS(CLE_ANN_VU,Date.now());
   document.querySelectorAll(".grille-rub .rub").forEach(function(b){var k=b.getAttribute("data-v"),c=doitClignoter(k);b.classList.toggle("clignote",c);
-    if(k==="dep"){var n=depNonVues(),s=b.querySelector(".rub-nouv");if(n&&!s){s=document.createElement("span");s.className="rub-nouv";b.appendChild(s)}if(s){if(n)s.textContent=n+" nouvelle"+(n>1?"s":"");else s.remove()}b.classList.toggle("a-nouv",!!n)}});
+    if(k==="dep"||k==="annul"){var n=nouveautes(k),s=b.querySelector(".rub-nouv");if(n&&!s){s=document.createElement("span");s.className="rub-nouv";b.appendChild(s)}if(s){if(n)s.textContent=n+(k==="annul"?" annulée":" nouvelle")+(n>1?"s":"");else s.remove()}b.classList.toggle("a-nouv",!!n)}});
 }
 setInterval(majClignote,3000);
 
