@@ -120,3 +120,9 @@ function contenuAnnuler(){
   return h;
 }
 function dAnnuler(){return contenuAnnuler()}
+
+/* ---------- Icônes illustrées des menus du DG (ic/*.webp) ---------- */
+var IMG_MENU={jour:"aujourdhui",avant:"jours-passes",journal:"journal",alv:"alveoles",ventes:"ventes",dep:"depenses",vers:"a-recevoir",
+  mal:"malades",morts:"mortes",poules:"poules",alim:"aliment",resume:"resume",clients:"clients",annul:"annuler",ctrl:"controle"};
+function icMenu(k,repli){return IMG_MENU[k]?'<img src="ic/'+IMG_MENU[k]+'.webp" alt="" width="64" height="64" loading="lazy" decoding="async">':(IC[repli]||"")}
+function clsIc(k){return IMG_MENU[k]?" ic-img":""}

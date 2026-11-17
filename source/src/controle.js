@@ -43,7 +43,7 @@ function pastille(e){return '<span class="ctrl-p ctrl-'+ETATS_CTRL[e][0]+'">'+ET
 function carteControle(){
   if(!estDG())return "";
   var K=controleJour(auj()),H=controleJour(decal(auj(),-1)),SC=sectionsComptable(auj()),e=Math.max(K.etat,H.etat,SC.etat),n=K.pts.length+H.pts.length+SC.n,on=V.ouvertP==="ctrl";
-  return '<button class="ctrl-carte ctrl-b'+e+(on?" on":"")+'" data-act="menuOuvrir" data-v="ctrl" aria-pressed="'+(on?"true":"false")+'"><span class="rub-ic">'+IC.loupe+'</span><span class="x"><b>Contrôle de cohérence</b><small>'+(n?n+" point"+(n>1?"s":"")+" à vérifier":"Tout est cohérent")+'</small></span>'+pastille(e)+'</button>';
+  return '<button class="ctrl-carte ctrl-b'+e+(on?" on":"")+'" data-act="menuOuvrir" data-v="ctrl" aria-pressed="'+(on?"true":"false")+'"><span class="rub-ic ic-img">'+icMenu("ctrl","loupe")+'</span><span class="x"><b>Contrôle de cohérence</b><small>'+(n?n+" point"+(n>1?"s":"")+" à vérifier":"Tout est cohérent")+'</small></span>'+pastille(e)+'</button>';
 }
 function contenuControle(){
   var d=jourChoisi(),R=D.reglages,K=controleJour(d),h='';

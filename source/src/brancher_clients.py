@@ -29,7 +29,17 @@ def appliquer(rep):
     rep('  if(k==="clients")return contenuClients();\n','  if(k==="clients")return contenuClients();\n  if(k==="annul")return contenuAnnuler();\n')
     rep('dRam:dRam,','dRam:dRam,dAnnuler:dAnnuler,')
     rep(""" Dépense</button></div>';""",""" Dépense</button></div><button class="btn sec annuler-btn" data-act="ouvrir" data-v="dAnnuler">'+IC.note+' Annuler une dépense</button>';""")
+    # Icônes illustrées
+    rep('''<span class="rub-ic">'+IC[m[2]]+'</span>''','''<span class="rub-ic'+clsIc(k)+'">'+icMenu(k,m[2])+'</span>''',2)
+    rep('''<span class="mv-ic">'+IC[m[2]]+'</span>''','''<span class="mv-ic'+clsIc(k)+'">'+icMenu(k,m[2])+'</span>''')
 CSS = """
+.rub-ic.ic-img,.mv-ic.ic-img{background:none!important;border-radius:0;width:58px;height:58px;margin-bottom:2px}
+.rub-ic.ic-img img,.mv-ic.ic-img img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
+.rub.on .rub-ic.ic-img img{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)) brightness(1.04)}
+.mv-ic.ic-img{width:46px;height:46px}
+.ctrl-carte .rub-ic.ic-img{width:48px;height:48px}
+.rub.clignote .rub-ic.ic-img{animation:ic-pulse 1.6s ease-in-out infinite}
+@keyframes ic-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .annuler-btn{margin-top:10px;width:100%}
 .annulees li.nouv{background:var(--alerte-doux);border-radius:12px}
 .annulees small{display:block}
