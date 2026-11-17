@@ -52,7 +52,7 @@ function versApp(l,b){
   else if(l==="alimIn"){x.sacs=num(b.sacs);x.montant=num(b.montant);x.recu=b.recu_chemin||"";x.sacsRecus=b.sacs_recus==null?null:num(b.sacs_recus);x.recuPar=b.recu_par?nomDe(b.recu_par):"";x.recuLe=b.recu_le||null}
   else if(l==="inv"){x.type=b.type;x.compte=num(b.compte);x.theorique=b.theorique==null?null:num(b.theorique);x.note=b.note||""}
   else if(l==="dep"){x.cat=b.categorie;x.montant=num(b.montant);x.note=b.detail||"";x.imprevu=!!b.imprevu;x.recu=b.recu_chemin||"";x.auto=b.achat_aliment_id||""}
-  else if(l==="ventes"){x.client=b.client;x.alv=num(b.alveoles);x.prix=num(b.prix_alveole);x.paye=num(b.paye)}
+  else if(l==="ventes"){x.client=b.client;x.alv=num(b.alveoles);x.prix=num(b.prix_alveole);x.paye=num(b.paye);x.tel=b.client_tel||""}
   else if(l==="regl"){x.vente=b.vente_id;x.montant=num(b.montant)}
   else if(l==="vers"){x.cycle=num(b.cycle);x.montant=num(b.montant);x.recu=b.recu_chemin||""}
   return x;
@@ -69,7 +69,7 @@ function versBase(l,r){
   else if(l==="alimOut"){if("sacs" in r)a("sacs",n0(r.sacs))}
   else if(l==="alimIn"){if("sacs" in r)a("sacs",n0(r.sacs));if("montant" in r)a("montant",entier(r.montant));if("recu" in r)a("recu_chemin",r.recu||null)}
   else if(l==="dep"){a("categorie",r.cat);if("montant" in r)a("montant",entier(r.montant));if("note" in r)a("detail",(r.note||"").trim()||null);if("imprevu" in r)a("imprevu",!!r.imprevu);if("recu" in r)a("recu_chemin",r.recu||null);if("auto" in r)a("achat_aliment_id",r.auto||null)}
-  else if(l==="ventes"){if("client" in r)a("client",String(r.client||"").trim());if("alv" in r)a("alveoles",entier(r.alv));if("prix" in r)a("prix_alveole",entier(r.prix));if("paye" in r)a("paye",entier(r.paye))}
+  else if(l==="ventes"){if("client" in r)a("client",String(r.client||"").trim());if("alv" in r)a("alveoles",entier(r.alv));if("prix" in r)a("prix_alveole",entier(r.prix));if("paye" in r)a("paye",entier(r.paye));if("tel" in r)a("client_tel",r.tel||null)}
   else if(l==="regl"){a("vente_id",r.vente);if("montant" in r)a("montant",entier(r.montant))}
   else if(l==="inv"){a("type",r.type);if("compte" in r)a("compte",Math.max(0,n0(r.compte)));if("theorique" in r)a("theorique",r.theorique==null?null:n0(r.theorique));if("note" in r)a("note",(r.note||"").trim()||null)}
   else if(l==="vers"){if("cycle" in r)a("cycle",r.cycle);if("montant" in r)a("montant",entier(r.montant));if("recu" in r)a("recu_chemin",r.recu||null)}
@@ -99,7 +99,10 @@ function construireD(){
   var bats=STATE.bats;OUT.forEach(function(o){if(o.k==="bat"&&STATE.bats)STATE.bats=STATE.bats.map(function(b){return b.id===o.id?Object.assign({},b,{nom:o.nom}):b})});
   D={reglages:reglagesApp(),users:(STATE.profils||[]).filter(function(p){return !p.retire}).map(function(p){return {id:p.id,nom:p.nom,role:ROLE_APP[p.role]||"gest",bloque:!!p.bloque,codeAChanger:!!p.code_a_changer}})};
   STATE.reg=reg;STATE.bats=bats;
-  LISTES.forEach(function(l){D[l]=[];var m=rows[l];for(var id in m){var b=m[id];if(b&&!b.annule)D[l].push(versApp(l,b))}});
+  D.depAnnulees=[];
+  LISTES.forEach(function(l){D[l]=[];var m=rows[l];for(var id in m){var b=m[id];if(!b)continue;
+    if(!b.annule)D[l].push(versApp(l,b));else if(l==="dep"){var xa=versApp(l,b);xa.motif=b.motif_annulation||"";xa.annulePar=nomDe(b.annule_par);xa.annuleLe=b.annule_le;D.depAnnulees.push(xa)}}});
+  D.depAnnulees.sort(function(a,b){return (b.annuleLe||"")>(a.annuleLe||"")?1:-1});
 }
 function enCache(){
   if(ecrireLS(CLE_CACHE,STATE))return;
@@ -181,7 +184,7 @@ function vider(){
     debutEnvoi=Date.now();
     avecDelai(envoyer(op)).then(function(ligne){
       OUT.splice(OUT.indexOf(op),1);sauverOut();
-      if(ligne&&op.l){STATE.rows[op.l][ligne.id]=ligne;if(ligne.annule)delete STATE.rows[op.l][ligne.id];enCache()}
+      if(ligne&&op.l){STATE.rows[op.l][ligne.id]=ligne;if(ligne.annule&&op.l!=="dep")delete STATE.rows[op.l][ligne.id];enCache()}
       ETAT.horsLigne=false;suivant();
     },function(e){
       if(e&&e.definitif){
@@ -211,7 +214,7 @@ function recharger(){
   var listes=LISTES.slice();
   chargeEnCours=Promise.all([toutLire("profils"),toutLire("reglages"),toutLire("batiments")].concat(listes.map(function(l){return lireAutorise(TABLES[l])}))).then(function(res){
     STATE.profils=res[0];STATE.reg=res[1][0]||STATE.reg;STATE.bats=res[2].length?res[2]:STATE.bats;
-    listes.forEach(function(l,i){var m={};(res[i+3]||[]).forEach(function(b){if(!b.annule)m[b.id]=b});STATE.rows[l]=m});
+    listes.forEach(function(l,i){var m={};(res[i+3]||[]).forEach(function(b){if(!b.annule||l==="dep")m[b.id]=b});STATE.rows[l]=m});
     STATE.charge=Date.now();enCache();ETAT.recu=true;ETAT.horsLigne=false;chargeEnCours=null;
     var p=STATE.profils.find(function(x){return x.id===PROFIL.id});
     if(!p||p.bloque||p.retire){perteSession(p&&(p.bloque||p.retire)?"Accès bloqué par le DG.":"");return}
@@ -235,7 +238,7 @@ function ecouterDirect(){
       if(PROFIL&&b.id===PROFIL.id&&(b.bloque||b.retire))return perteSession("Accès bloqué par le DG.")}
     else if(t==="reglages")STATE.reg=b;
     else if(t==="batiments"&&STATE.bats)STATE.bats=STATE.bats.map(function(x){return x.id===b.id?b:x});
-    else{var l=LISTE_DE[t];if(!l)return;if(b.annule)delete STATE.rows[l][b.id];else STATE.rows[l][b.id]=b}
+    else{var l=LISTE_DE[t];if(!l)return;if(b.annule&&l!=="dep")delete STATE.rows[l][b.id];else STATE.rows[l][b.id]=b}
     enCache();plusTard();
   }).subscribe(function(st){
     if(st==="SUBSCRIBED"){ETAT.direct=true;recharger()}
